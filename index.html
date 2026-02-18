@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NexBuildr</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins',sans-serif;
+scroll-behavior:smooth;
+}
+
+body{
+background:#000;
+color:white;
+}
+
+/* ================= NAVBAR ================= */
+
+nav{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:20px 8%;
+position:fixed;
+width:100%;
+top:0;
+background:#000;
+z-index:1000;
+border-bottom:1px solid rgba(255,255,255,0.08);
+}
+
+
+.logo{
+font-size:24px;
+font-weight:700;
+background:linear-gradient(90deg,#ff00cc,#a855f7);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
+
+.menu-btn{
+font-size:28px;
+cursor:pointer;
+color:white;
+transition:0.3s;
+}
+
+.menu-btn:hover{
+color:#ff00cc;
+}
+
+/* SIDE MENU */
+
+.side-menu{
+position:fixed;
+top:0;
+right:-100%;
+width:260px;
+height:100vh;
+background:#0d0d0d;
+padding:80px 30px;
+transition:0.5s;
+z-index:999;
+box-shadow:-5px 0 20px rgba(255,0,204,0.2);
+}
+
+.side-menu.active{
+right:0;
+}
+
+.side-menu a{
+display:block;
+color:white;
+text-decoration:none;
+margin:20px 0;
+font-size:18px;
+transition:0.3s;
+}
+
+.side-menu a:hover{
+color:#ff00cc;
+padding-right:5px;
+}
+
+.close-btn{
+position:absolute;
+top:20px;
+right:25px;
+font-size:28px;
+cursor:pointer;
+}
+
+/* HERO */
+
+.hero{
+height:100vh;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+text-align:center;
+padding:0 20px;
+}
+
+.hero{
+padding-top:120px;   /* Add this */
+}
+
+.hero h1{
+font-size:50px;
+background:linear-gradient(90deg,#ff00cc,#a855f87);
+-webkit-background-clip:text;
+-webkit-text-fill-color:#ff00cc;
+margin-bottom:20px;
+}
+
+.hero p{
+max-width:600px;
+opacity:0.8;
+margin-bottom:30px;
+}
+
+.btn{
+padding:12px 30px;
+border:2px solid #ff00cc;
+color:#ff00cc;
+text-decoration:none;
+border-radius:30px;
+transition:0.4s;
+}
+
+.btn:hover{
+background:#ff00cc;
+color:black;
+box-shadow:0 0 20px #ff00cc;
+}
+
+/* SECTION */
+
+section{
+padding:100px 8%;
+}
+
+.section-title{
+font-size:32px;
+margin-bottom:40px;
+}
+
+/* WHAT IS */
+
+.about h2{
+color:white;
+}
+
+.about span{
+background:linear-gradient(90deg,#ff00cc,#a855f7);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
+
+.about p{
+margin-top:20px;
+line-height:1.7;
+opacity:0.9;
+max-width:800px;
+}
+
+/* FEATURES */
+
+.features-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:25px;
+}
+
+.feature{
+background:#111;
+padding:25px;
+border-radius:15px;
+transition:0.4s;
+border:1px solid rgba(255,255,255,0.05);
+}
+
+.feature:hover{
+transform:translateY(-8px);
+box-shadow:0 0 20px rgba(255,0,204,0.3);
+}
+
+.feature h3{
+color:#ff00cc;
+margin-bottom:10px;
+}
+
+.feature p{
+opacity:0.8;
+}
+
+/* TEAM */
+
+.team-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:25px;
+}
+
+.member{
+background:#111;
+padding:25px;
+border-radius:15px;
+text-align:center;
+transition:0.4s;
+}
+
+.member:hover{
+box-shadow:0 0 20px rgba(168,85,247,0.4);
+}
+
+.member h3{
+color:#ff00cc;
+font-size:20px;
+}
+
+.member h4{
+font-size:14px;
+opacity:0.7;
+margin-bottom:15px;
+}
+
+.social-icons a{
+margin:0 8px;
+display:inline-block;
+color:white;
+}
+
+.social-icons svg{
+width:20px;
+height:20px;
+fill:white;
+transition:0.3s;
+}
+
+.social-icons svg:hover{
+fill:#ff00cc;
+}
+
+/* FOOTER */
+
+footer{
+background:#0d0d0d;
+padding:80px 8% 40px;
+margin-top:80px;
+}
+
+.footer-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+gap:40px;
+}
+
+.footer-title{
+font-size:22px;
+margin-bottom:20px;
+background:linear-gradient(90deg,#ff00cc,#a855f7);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
+
+.footer-column h4{
+margin-bottom:15px;
+}
+
+.footer-column a{
+display:block;
+color:white;
+text-decoration:none;
+opacity:0.8;
+margin:8px 0;
+transition:0.3s;
+}
+
+.footer-column a:hover{
+color:#ff00cc;
+}
+
+.footer-bottom{
+text-align:center;
+margin-top:40px;
+opacity:0.6;
+font-size:14px;
+}
+
+</style>
+</head>
+
+<body>
+
+
+<nav>
+  <div class="logo">NexBuildr</div>
+  <div class="menu-btn" id="menuToggle" onclick="toggleMenu()">☰</div>
+</nav>
+
+<div class="side-menu" id="menu">
+
+<a href="#home" onclick="closeMenu()">Home</a>
+<a href="#about" onclick="closeMenu()">About</a>
+<a href="#features" onclick="closeMenu()">Features</a>
+<a href="#team" onclick="closeMenu()">Team</a>
+<a href="#contact" onclick="closeMenu()">Contact</a>
+</div>
+
+
+<section class="hero" id="home">
+<h1>NexBuildr</h1>
+<p style="letter-spacing:3px; margin-bottom:15px;">
+Learn. Connect. Build.
+</p>
+
+<p>
+Empowering students and dreamers to build startups, innovate, and achieve their goals through a complete EdTech + Startup Ecosystem.
+</p>
+
+<a href="https://chat.whatsapp.com/Ba3y6R9PhKv4DnpvTeTlKe?mode=gi_c" class="btn">Join Community</a>
+</section>
+
+<section class="about" id="about">
+<h2 class="section-title">
+<span>What is NexBuildr?</span>
+</h2>
+<p>
+NexBuildr is a full startup ecosystem platform designed for students, innovators, and dreamers. 
+We combine education, AI tools, networking, investor connections, and branding support 
+into one powerful ecosystem. Our mission is to help young entrepreneurs turn ideas into real startups.
+</p>
+</section>
+
+<section id="features"> 
+<h2 class="section-title" style="text-align:center;">
+<span style="color:white;">Core </span>
+<span style="background:linear-gradient(90deg,#ff00cc,#a855f7);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;">
+Features
+</span>
+</h2>
+
+<div class="feature">
+<h3>AI Assistant</h3>
+<p>Smart AI tools to guide you in idea validation, branding and startup growth.</p>
+</div>
+
+<div class="feature">
+<h3>Branding Tools</h3>
+<p>Create posters, pitch decks and startup brand assets easily.</p>
+</div>
+
+<div class="feature">
+<h3>Personal & Global Chat</h3>
+<p>Connect with builders worldwide and collaborate in real time.</p>
+</div>
+
+<div class="feature">
+<h3>Find Investor & Co-founder</h3>
+<p>Discover investors and co-founders to scale your startup faster.</p>
+</div>
+
+</div>
+</section>
+
+<section id="team">
+
+<h2 class="section-title" style="text-align:center;">
+<span style="color:white;">Meet the Team Behind </span>
+<span style="background:linear-gradient(90deg,#ff00cc,#a855f7);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;">
+NexBuildr
+</span>
+</h2>
+
+<div class="member">
+<h3>Atharv Singh Raj</h3>
+<h4>Founder & CEO</h4>
+<div class="social-icons">
+<a href="https://www.instagram.com/startupboyatharv?igsh=MXE0eHBlY2VqbjhjOA=="><svg viewBox="0 0 24 24"><path d="M7.75 2C4.57 2 2 4.57 2 7.75v8.5C2 19.43 4.57 22 7.75 22h8.5C19.43 22 22 19.43 22 16.25v-8.5C22 4.57 19.43 2 16.25 2h-8.5zM12 7a5 5 0 110 10 5 5 0 010-10z"/></svg></a>
+<a href="#"><svg viewBox="0 0 24 24"><path d="M4.98 3.5C4.98 4.88 3.86 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1 4.98 2.12 4.98 3.5zM0 8h5v16H0zM7.5 8h4.7v2.2h.1c.7-1.2 2.4-2.4 5-2.4 5.3 0 6.3 3.5 6.3 8v9H18v-8c0-1.9 0-4.3-2.6-4.3-2.6 0-3 2-3 4.2v8.1H7.5z"/></svg></a>
+</div>
+</div>
+
+</div>
+
+<div class="member">
+<h3>Hardik Dawar</h3>
+<h4>Co-founder & CFO</h4>
+
+<div class="social-icons">
+<a href="https://www.instagram.com/hardik345?igsh=cm1namRsN3pmM2Z2" target="_blank">
+<svg viewBox="0 0 24 24">
+<path d="M7.75 2C4.57 2 2 4.57 2 7.75v8.5C2 19.43 4.57 22 7.75 22h8.5C19.43 22 22 19.43 22 16.25v-8.5C22 4.57 19.43 2 16.25 2h-8.5zM12 7a5 5 0 110 10 5 5 0 010-10z"/>
+</svg>
+</a>
+
+<a href="https://linkedin.com/in/rohanmehta" target="_blank">
+<svg viewBox="0 0 24 24">
+<path d="M4 4h4v16H4zM6 2a2 2 0 110 4 2 2 0 010-4zm6 6h4v2h.1c.6-1 2-2 4-2 4 0 4.9 2.6 4.9 6v6h-4v-5c0-1.2 0-3-2-3s-2.3 1.5-2.3 2.9V20h-4V8z"/>
+</svg>
+</a>
+</div>
+</div>
+
+<div class="member">
+<h3>Ayush Kumar</h3>
+<h4>Co-founder & CMO</h4>
+<div class="social-icons">
+<a href="https://www.instagram.com/ayushx7._?igsh=aXR6NWQ2NmJmZzk1" target="_blank">
+<svg viewBox="0 0 24 24">
+<path d="M7.75 2C4.57 2 2 4.57 2 7.75v8.5C2 19.43 4.57 22 7.75 22h8.5C19.43 22 22 19.43 22 16.25v-8.5C22 4.57 19.43 2 16.25 2h-8.5zM12 7a5 5 0 110 10 5 5 0 010-10z"/>
+</svg>
+</a>
+<a href="https://linkedin.com/in/ananyakapoor" target="_blank">
+<svg viewBox="0 0 24 24">
+<path d="M4 4h4v16H4zM6 2a2 2 0 110 4 2 2 0 010-4zm6 6h4v2h.1c.6-1 2-2 4-2 4 0 4.9 2.6 4.9 6v6h-4v-5c0-1.2 0-3-2-3s-2.3 1.5-2.3 2.9V20h-4V8z"/>
+</svg>
+</a>
+</div>
+</div>
+
+<div class="member">
+<h3>Anurag</h3>
+<h4>CTO</h4>
+<div class="social-icons">
+<a href="https://www.instagram.com/itx_anurag_kurmi?igsh=MXRqcWo1amNqbWtubA==" target="_blank">
+<svg viewBox="0 0 24 24">
+<path d="M7.75 2C4.57 2 2 4.57 2 7.75v8.5C2 19.43 4.57 22 7.75 22h8.5C19.43 22 22 19.43 22 16.25v-8.5C22 4.57 19.43 2 16.25 2h-8.5zM12 7a5 5 0 110 10 5 5 0 010-10z"/>
+</svg>
+</a>
+<a href="https://linkedin.com/in/arjunverma" target="_blank">
+<svg viewBox="0 0 24 24">
+<path d="M4 4h4v16H4zM6 2a2 2 0 110 4 2 2 0 010-4zm6 6h4v2h.1c.6-1 2-2 4-2 4 0 4.9 2.6 4.9 6v6h-4v-5c0-1.2 0-3-2-3s-2.3 1.5-2.3 2.9V20h-4V8z"/>
+</svg>
+</a>
+</div>
+</div>
+
+<div class="member">
+<h3>Pradyumna Saha</h3>
+<h4>COO</h4>
+<div class="social-icons">
+<a href="https://www.instagram.com/pradyumna.official2010?igsh=eTN1dXJ3N2dnYjJm" target="_blank">
+<svg viewBox="0 0 24 24">
+<path d="M7.75 2C4.57 2 2 4.57 2 7.75v8.5C2 19.43 4.57 22 7.75 22h8.5C19.43 22 22 19.43 22 16.25v-8.5C22 4.57 19.43 2 16.25 2h-8.5zM12 7a5 5 0 110 10 5 5 0 010-10z"/>
+</svg>
+</a>
+<a href="https://linkedin.com/in/snehaiyer" target="_blank">
+<svg viewBox="0 0 24 24">
+<path d="M4 4h4v16H4zM6 2a2 2 0 110 4 2 2 0 010-4zm6 6h4v2h.1c.6-1 2-2 4-2 4 0 4.9 2.6 4.9 6v6h-4v-5c0-1.2 0-3-2-3s-2.3 1.5-2.3 2.9V20h-4V8z"/>
+</svg>
+</a>
+</div>
+</div>
+</section>
+
+<div style="margin-top:80px; border-top:1px solid rgba(255,255,255,0.1); padding-top:50px;">
+
+<h2 style="font-size:28px; margin-bottom:20px; text-align:center;">
+<span style="color:white;">Privacy </span>
+<span style="background:linear-gradient(90deg,#ff00cc,#a855f7);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;">
+Policy
+</span>
+</h2>
+
+<p style="max-width:900px; margin:auto; line-height:1.8; opacity:0.85; text-align:center;">
+At NexBuildr, we value your privacy and are committed to protecting your personal information.
+Our platform is built to empower students, innovators, and startup founders, and we ensure that
+all user data is handled with transparency and responsibility. We collect only essential information
+required to improve user experience, provide AI-powered tools, enable networking, and deliver
+startup ecosystem services effectively. Your personal details, conversations, and activity data
+are never sold or shared with third parties without consent. We use secure technologies and
+industry-standard protection systems to safeguard your information. By using NexBuildr,
+you agree to our responsible data practices aimed at building a safe, secure, and trustworthy
+startup community for future innovators.
+</p>
+
+</div>
+
+<footer id="contact">
+
+<div class="footer-grid">
+
+<div>
+<div class="footer-title">NexBuildr</div>
+<p style="opacity:0.8;">
+A next-generation EdTech + Startup ecosystem helping students 
+build real-world startups and achieve their dreams.
+</p>
+</div>
+
+<div class="footer-column">
+<h4>Product</h4>
+<a href="#">Features</a>
+<a href="#">Pricing</a>
+<a href="#">AI Assistant</a>
+<a href="#">Community</a>
+</div>
+
+<div class="footer-column">
+<h4>Company</h4>
+<a href="#">About</a>
+<a href="#">Team</a>
+<a href="#">Careers</a>
+<a href="#">Contact</a>
+</div>
+
+<div class="footer-column">
+<h4>Legal</h4>
+<a href="#">Privacy Policy</a>
+<a href="#">Terms & Conditions</a>
+<a href="#">Cookies Policy</a>
+</div>
+
+</div>
+
+<div class="footer-bottom">
+© 2026 NexBuildr. All rights reserved.
+</div>
+
+</footer>
+
+<script>
+function toggleMenu(){
+let menu = document.getElementById("menu");
+let toggle = document.getElementById("menuToggle");
+
+menu.classList.toggle("active");
+
+if(menu.classList.contains("active")){
+toggle.innerHTML = "✕";
+}else{
+toggle.innerHTML = "☰";
+}
+}
+</script>
+
+</body>
+</html>
