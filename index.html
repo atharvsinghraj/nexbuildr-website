@@ -1328,12 +1328,12 @@ body, #lo, #app, #land, html { background: #000 !important; background-color: #0
       <div class="tcard">
         <div class="tq-mark"><svg width="24" height="19" viewBox="0 0 28 22" fill="none"><path d="M0 22V13.4C0 9.8 0.9 6.8 2.7 4.4C4.5 2 7.1 0.6 10.5 0L11.6 2.4C9.6 2.9 8 3.9 6.8 5.4C5.6 6.9 5 8.7 5 10.8H10V22H0ZM17 22V13.4C17 9.8 17.9 6.8 19.7 4.4C21.5 2 24.1 0.6 27.5 0L28.6 2.4C26.6 2.9 25 3.9 23.8 5.4C22.6 6.9 22 8.7 22 10.8H27V22H17Z" fill="rgba(139,92,246,0.35)"/></svg></div>
         <p class="ttxt">NexBuildr is solving a real gap in the Indian startup ecosystem. The platform gives first-time founders exactly what they need — community, tools, and direction — all in one place.</p>
-        <div class="tauth"><div class="tav">R</div><div><div class="tnm">Ravi Mehta</div><div class="trole">Angel Investor &amp; Mentor</div></div></div>
+        <div class="tauth"><div class="tav">A</div><div><div class="tnm">Ayush Tiwari</div><div class="trole">Founder &amp; CEO, Growth.Ai</div></div></div>
       </div>
       <div class="tcard">
         <div class="tq-mark"><svg width="24" height="19" viewBox="0 0 28 22" fill="none"><path d="M0 22V13.4C0 9.8 0.9 6.8 2.7 4.4C4.5 2 7.1 0.6 10.5 0L11.6 2.4C9.6 2.9 8 3.9 6.8 5.4C5.6 6.9 5 8.7 5 10.8H10V22H0ZM17 22V13.4C17 9.8 17.9 6.8 19.7 4.4C21.5 2 24.1 0.6 27.5 0L28.6 2.4C26.6 2.9 25 3.9 23.8 5.4C22.6 6.9 22 8.7 22 10.8H27V22H17Z" fill="rgba(139,92,246,0.35)"/></svg></div>
         <p class="ttxt">The community-first approach is what makes this platform different. You are not just getting tools — you are getting real people who genuinely want to see you succeed. That is rare.</p>
-        <div class="tauth"><div class="tav">P</div><div><div class="tnm">Priya Nair</div><div class="trole">Student Founder, BuildX</div></div></div>
+        <div class="tauth"><div class="tav"></div><div><div class="tnm">Divyansh Shukla</div><div class="trole">Founder &amp; CEO, Collabset</div></div></div>
       </div>
       <!-- DUPLICATE for seamless loop -->
       <div class="tcard">
@@ -2295,8 +2295,8 @@ function oApp(){
   var land=document.getElementById('land');
   var lnav=document.getElementById('land-nav');
   if(app)app.classList.add('on');
-  if(land)land.style.display='none';
-  if(lnav)lnav.style.display='none';
+  if(land)land.style.display='flex';
+  if(lnav)lnav.style.display='flex';
   if(typeof listenGC==='function')listenGC();
   if(typeof loadFeed==='function')loadFeed();
   if(typeof loadShowcase==='function')loadShowcase();
@@ -2305,7 +2305,7 @@ function cApp(){
   var app=document.getElementById('app');
   var land=document.getElementById('land');
   var lnav=document.getElementById('land-nav');
-  if(app){app.classList.remove('on');app.style.display='none';}
+  if(app){app.classList.remove('on');app.style.display='flex';}
   if(land)land.style.display='block';
   if(lnav)lnav.style.display='flex';
 }
@@ -2314,7 +2314,7 @@ function goToWaitlist(){
   var app=document.getElementById('app');
   var land=document.getElementById('land');
   var lnav=document.getElementById('land-nav');
-  if(app){app.classList.remove('on');app.style.display='none';}
+  if(app){app.classList.remove('on');app.style.display='flex';}
   if(land)land.style.display='block';
   if(lnav)lnav.style.display='flex';
   // Scroll to waitlist after land is visible
