@@ -965,7 +965,7 @@ const db   = firebase.firestore();
 //  Authentication → Users → UID column
 // ══════════════════════════════════════════
 var ADMIN_UIDS = [
-  'APNA_UID_YAHAN_DAALO'   // <-- tumhara UID
+  'tcZlQ78sleSalHMsgMqZMRh8v063'   // <-- tumhara UID
   // team member ka UID add karna ho to:
   // 'TEAM_MEMBER_UID_1',
   // 'TEAM_MEMBER_UID_2'
@@ -974,7 +974,7 @@ var ADMIN_UIDS = [
 auth.onAuthStateChanged(function(u){
   if(u){
     // ── SECURITY CHECK ──
-    if(ADMIN_UIDS.indexOf('APNA_UID_YAHAN_DAALO') !== -1 && ADMIN_UIDS.length === 1 && ADMIN_UIDS[0] === 'APNA_UID_YAHAN_DAALO'){
+    if(ADMIN_UIDS.indexOf('tcZlQ78sleSalHMsgMqZMRh8v063') !== -1 && ADMIN_UIDS.length === 1 && ADMIN_UIDS[0] === 'APNA_UID_YAHAN_DAALO'){
       // UID set nahi kiya — temp allow + warning dikhao
       showUIDSetupWarning(u.uid);
       document.getElementById('login-screen').style.display='none';
