@@ -2,1180 +2,1313 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>NexBuildr Admin — Control Center</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+<title>NexBuildr — Admin Control Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <style>
-:root {
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
   --v:#7c3aed;--v2:#8b5cf6;--v3:#a78bfa;
   --p:#ec4899;--p2:#f472b6;
+  --bg:#04040a;--bg2:#080810;--bg3:#0e0e1c;
+  --card:#0c0c18;--card2:#111122;
+  --b:rgba(255,255,255,.06);--b2:rgba(124,58,237,.2);
+  --t:#ffffff;--t2:rgba(255,255,255,.65);--t3:rgba(255,255,255,.35);
   --g:linear-gradient(135deg,#7c3aed,#ec4899);
-  --card:#0d0d14;--card2:#111118;
-  --b:rgba(255,255,255,.06);
+  --gs:0 0 0 1px rgba(124,58,237,.3),0 20px 60px rgba(124,58,237,.15);
+  --ff:'DM Sans',system-ui,sans-serif;
+  --fh:'Syne',system-ui,sans-serif;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',system-ui,sans-serif;background:#050508;color:#fff;overflow-x:hidden}
-::-webkit-scrollbar{width:4px;height:4px}
-::-webkit-scrollbar-thumb{background:linear-gradient(#7c3aed,#ec4899);border-radius:4px}
-::selection{background:rgba(139,92,246,.35)}
+html,body{height:100%;background:var(--bg);color:var(--t);font-family:var(--ff);overflow-x:hidden}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(124,58,237,.4);border-radius:3px}
+::selection{background:rgba(124,58,237,.3)}
 
-/* GRADIENTS */
-.g-text{background:linear-gradient(135deg,#a78bfa,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.g-bg{background:linear-gradient(135deg,#7c3aed,#ec4899)}
-.g-border{border:1px solid transparent;background:linear-gradient(var(--card),var(--card)) padding-box,linear-gradient(135deg,rgba(124,58,237,.5),rgba(236,72,153,.5)) border-box}
+/* ── UTILS ── */
+.g-text{background:var(--g);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.g-bg{background:var(--g)}
+.g-border{border:1px solid transparent;background:linear-gradient(var(--card),var(--card)) padding-box,var(--g) border-box}
 
-/* CARDS */
-.adm-card{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:16px;transition:all .25s}
-.adm-card:hover{border-color:rgba(139,92,246,.25);transform:translateY(-1px)}
-.stat-card{background:linear-gradient(135deg,rgba(124,58,237,.08),rgba(236,72,153,.04));border:1px solid rgba(124,58,237,.18);border-radius:18px;transition:all .3s;position:relative;overflow:hidden}
-.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--g)}
-.stat-card:hover{border-color:rgba(139,92,246,.4);transform:translateY(-3px);box-shadow:0 20px 60px rgba(124,58,237,.15)}
-
-/* SIDEBAR */
-#sidebar{width:248px;background:rgba(5,5,10,.98);border-right:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;transition:transform .3s cubic-bezier(.16,1,.3,1);position:fixed;top:0;left:0;height:100vh;z-index:50}
-.sidebar-logo{padding:22px 20px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
-.nav-item{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:10px;cursor:pointer;transition:all .2s;color:rgba(255,255,255,.45);font-size:13px;font-weight:500;margin:1px 8px;position:relative}
-.nav-item:hover{color:#fff;background:rgba(139,92,246,.1)}
-.nav-item.active{color:#fff;background:rgba(124,58,237,.18);border:1px solid rgba(124,58,237,.25)}
-.nav-item.active::before{content:'';position:absolute;left:0;top:25%;height:50%;width:2.5px;background:var(--g);border-radius:0 2px 2px 0;left:-8px}
-.nav-section{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.2);padding:14px 24px 6px}
-
-/* TOPBAR */
-#topbar{height:58px;background:rgba(5,5,10,.95);border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;padding:0 24px;gap:12px;position:sticky;top:0;z-index:40;backdrop-filter:blur(20px)}
-
-/* MAIN */
-#main-content{margin-left:248px;min-height:100vh;display:flex;flex-direction:column}
-#page-area{flex:1;padding:24px;overflow-y:auto}
-
-/* TABLES */
-.adm-table{width:100%;border-collapse:collapse}
-.adm-table th{background:rgba(124,58,237,.08);color:rgba(255,255,255,.5);font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid rgba(255,255,255,.06)}
-.adm-table td{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;vertical-align:middle;transition:background .15s}
-.adm-table tr:hover td{background:rgba(124,58,237,.04)}
-.adm-table tr:last-child td{border-bottom:none}
-
-/* BADGES */
-.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
-.badge-admin{background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);color:#a78bfa}
-.badge-user{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5)}
-.badge-active{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);color:#34d399}
-.badge-banned{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#f87171}
-.badge-featured{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);color:#fbbf24}
-.badge-pending{background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.25);color:#a78bfa}
-
-/* BUTTONS */
-.btn-primary{background:var(--g);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
-.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(124,58,237,.4)}
-.btn-danger{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);color:#f87171;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s}
-.btn-danger:hover{background:rgba(239,68,68,.22);border-color:rgba(239,68,68,.5)}
-.btn-ghost{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s}
-.btn-ghost:hover{background:rgba(255,255,255,.1)}
-.btn-success{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);color:#34d399;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s}
-.btn-success:hover{background:rgba(16,185,129,.22)}
-.btn-warn{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);color:#fbbf24;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s}
-.btn-warn:hover{background:rgba(245,158,11,.22)}
-
-/* INPUT */
-.adm-input{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:9px 14px;color:#fff;font-size:13px;outline:none;transition:all .25s;width:100%}
-.adm-input:focus{border-color:rgba(124,58,237,.5);background:rgba(124,58,237,.07);box-shadow:0 0 0 3px rgba(124,58,237,.1)}
-.adm-input::placeholder{color:rgba(255,255,255,.25)}
-
-/* ANIMATIONS */
-@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+/* ── LOADING ── */
+#app-loader{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .5s,visibility .5s}
+#app-loader.hide{opacity:0;visibility:hidden}
+.loader-ring{width:44px;height:44px;border-radius:50%;border:2px solid rgba(124,58,237,.15);border-top-color:#7c3aed;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
 .fade-up{animation:fadeUp .4s cubic-bezier(.16,1,.3,1) both}
-.live-dot{width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 8px rgba(16,185,129,.6);animation:pulse 2s ease infinite}
-.spin{animation:spin 1s linear infinite}
-.skeleton{background:linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.08) 50%,rgba(255,255,255,.04) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#10b981;box-shadow:0 0 8px rgba(16,185,129,.6);animation:pulse 2s ease infinite;flex-shrink:0}
+.skeleton{background:linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.09) 50%,rgba(255,255,255,.04) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:8px}
 
-/* MOBILE SIDEBAR OVERLAY */
+/* ── LOGIN ── */
+#login-view{position:fixed;inset:0;z-index:100;background:var(--bg);display:none;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+#login-view.show{display:flex}
+.login-bg{position:absolute;inset:0;background:radial-gradient(ellipse 60% 60% at 20% 50%,rgba(124,58,237,.12),transparent),radial-gradient(ellipse 50% 50% at 80% 20%,rgba(236,72,153,.08),transparent);pointer-events:none}
+.login-card{position:relative;z-index:1;width:100%;max-width:420px;background:var(--card);border:1px solid rgba(124,58,237,.18);border-radius:24px;padding:36px;box-shadow:0 0 0 1px rgba(236,72,153,.05),0 40px 100px rgba(0,0,0,.6)}
+.inp{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:var(--t);font-family:var(--ff);font-size:14px;outline:none;transition:.25s}
+.inp:focus{border-color:rgba(124,58,237,.5);background:rgba(124,58,237,.07);box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+.inp::placeholder{color:var(--t3)}
+.btn-p{background:var(--g);color:#fff;border:none;border-radius:10px;padding:11px 20px;font-family:var(--ff);font-size:14px;font-weight:600;cursor:pointer;transition:.2s;white-space:nowrap}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(124,58,237,.4)}
+.btn-p:active{transform:none}
+.btn-p:disabled{opacity:.6;pointer-events:none}
+.btn-ghost{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--t2);border-radius:10px;padding:9px 16px;font-family:var(--ff);font-size:13px;font-weight:500;cursor:pointer;transition:.2s}
+.btn-ghost:hover{background:rgba(255,255,255,.1);color:var(--t)}
+.btn-danger{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;border-radius:8px;padding:6px 12px;font-family:var(--ff);font-size:12px;font-weight:500;cursor:pointer;transition:.2s}
+.btn-danger:hover{background:rgba(239,68,68,.2)}
+.btn-success{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);color:#34d399;border-radius:8px;padding:6px 12px;font-family:var(--ff);font-size:12px;font-weight:500;cursor:pointer;transition:.2s}
+.btn-success:hover{background:rgba(16,185,129,.2)}
+.btn-warn{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);color:#fbbf24;border-radius:8px;padding:6px 12px;font-family:var(--ff);font-size:12px;font-weight:500;cursor:pointer;transition:.2s}
+.btn-warn:hover{background:rgba(245,158,11,.2)}
+.lbl{font-size:11px;font-weight:600;color:var(--t3);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:6px}
+.alert{border-radius:10px;padding:11px 14px;font-size:13px;display:none;margin-bottom:14px}
+.alert.err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171}
+.alert.ok{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);color:#34d399}
+
+/* ── LAYOUT ── */
+#app-view{display:none;min-height:100vh}
+#app-view.show{display:flex}
+#sidebar{width:240px;background:rgba(4,4,10,.98);border-right:1px solid var(--b);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:50;transition:transform .3s cubic-bezier(.16,1,.3,1)}
+#main{margin-left:240px;flex:1;display:flex;flex-direction:column;min-height:100vh}
+#topbar{height:56px;background:rgba(4,4,10,.95);border-bottom:1px solid var(--b);backdrop-filter:blur(20px);display:flex;align-items:center;padding:0 22px;gap:12px;position:sticky;top:0;z-index:40}
+#page-wrap{flex:1;padding:22px}
 #sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:45;backdrop-filter:blur(4px)}
+
+/* ── SIDEBAR ── */
+.sb-logo{padding:18px 16px 14px;border-bottom:1px solid var(--b)}
+.sb-nav{flex:1;overflow-y:auto;padding:8px}
+.sb-section{font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--t3);padding:12px 10px 5px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:9px;cursor:pointer;color:var(--t3);font-size:13px;font-weight:500;transition:.18s;position:relative;margin:1px 0;font-family:var(--ff)}
+.nav-item:hover{color:var(--t);background:rgba(124,58,237,.1)}
+.nav-item.on{color:var(--t);background:rgba(124,58,237,.16);border:1px solid rgba(124,58,237,.22)}
+.nav-item.on::before{content:'';position:absolute;left:-8px;top:25%;height:50%;width:2px;background:var(--g);border-radius:0 2px 2px 0}
+.nav-badge{margin-left:auto;background:rgba(124,58,237,.2);border:1px solid rgba(124,58,237,.3);border-radius:20px;padding:1px 7px;font-size:10px;color:var(--v3)}
+.sb-footer{padding:12px;border-top:1px solid var(--b)}
+.sb-user{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;background:var(--card2);border:1px solid var(--b);margin-bottom:8px}
+.sb-av{width:32px;height:32px;border-radius:50%;background:var(--g);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;overflow:hidden;flex-shrink:0}
+.sb-av img{width:100%;height:100%;object-fit:cover}
+.logout-btn{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:9px;cursor:pointer;color:rgba(239,68,68,.7);font-size:13px;font-weight:500;transition:.18s;border:1px solid transparent;font-family:var(--ff)}
+.logout-btn:hover{color:#f87171;background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.15)}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--b);border-radius:16px;transition:.25s}
+.card:hover{border-color:rgba(124,58,237,.2)}
+.stat-card{background:linear-gradient(135deg,rgba(124,58,237,.08),rgba(236,72,153,.04));border:1px solid rgba(124,58,237,.15);border-radius:18px;padding:20px;position:relative;overflow:hidden;transition:.3s}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--g)}
+.stat-card:hover{border-color:rgba(124,58,237,.35);transform:translateY(-2px);box-shadow:0 16px 48px rgba(124,58,237,.12)}
+.stat-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stat-val{font-family:var(--fh);font-size:28px;font-weight:700;line-height:1}
+.stat-lbl{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--t3)}
+
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse;font-family:var(--ff)}
+.tbl th{background:rgba(124,58,237,.07);color:var(--t3);font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid var(--b)}
+.tbl th:first-child{border-radius:8px 0 0 0}
+.tbl th:last-child{border-radius:0 8px 0 0}
+.tbl td{padding:11px 14px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;vertical-align:middle;transition:background .15s}
+.tbl tr:hover td{background:rgba(124,58,237,.04)}
+.tbl tr:last-child td{border-bottom:none}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap}
+.badge-purple{background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);color:var(--v3)}
+.badge-green{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);color:#34d399}
+.badge-red{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#f87171}
+.badge-yellow{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);color:#fbbf24}
+.badge-gray{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--t3)}
+.badge-pink{background:rgba(236,72,153,.1);border:1px solid rgba(236,72,153,.25);color:#f472b6}
+
+/* ── SWITCH ── */
+.sw{position:relative;width:38px;height:21px;display:inline-block}
+.sw input{display:none}
+.sw-sl{position:absolute;inset:0;background:rgba(255,255,255,.12);border-radius:21px;cursor:pointer;transition:.3s}
+.sw-sl::before{content:'';position:absolute;width:15px;height:15px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s}
+.sw input:checked+.sw-sl{background:var(--g)}
+.sw input:checked+.sw-sl::before{transform:translateX(17px)}
+
+/* ── USER AVATAR ── */
+.uav{width:34px;height:34px;border-radius:50%;background:var(--g);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;overflow:hidden;flex-shrink:0}
+.uav img{width:100%;height:100%;object-fit:cover}
+
+/* ── MODAL ── */
+#modal-bg{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.85);backdrop-filter:blur(16px);align-items:center;justify-content:center;padding:20px}
+#modal-bg.show{display:flex}
+#modal-box{background:var(--card);border:1px solid rgba(124,58,237,.2);border-radius:20px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;position:relative;animation:fadeUp .3s cubic-bezier(.16,1,.3,1) both;padding:28px}
+
+/* ── TOAST ── */
+#toasts{position:fixed;bottom:22px;right:22px;z-index:999;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--card2);border-radius:12px;padding:12px 16px;font-size:13px;border-left:3px solid;box-shadow:0 10px 40px rgba(0,0,0,.5);animation:fadeUp .3s ease;display:flex;align-items:center;gap:9px;min-width:240px;max-width:320px;font-family:var(--ff)}
+.toast.ok{border-color:#10b981;color:#34d399}
+.toast.err{border-color:#ef4444;color:#f87171}
+.toast.info{border-color:var(--v);color:var(--v3)}
+
+/* ── SEARCH ── */
+.search-wrap{position:relative}
+.search-wrap .si{position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:.4;pointer-events:none}
+.search-inp{padding-left:36px}
+
+/* ── CHART ── */
+.chart-wrap{position:relative;height:200px}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:56px 20px;color:var(--t3)}
+.empty svg{margin:0 auto 14px;opacity:.25}
+
+/* ── PAGE SECTIONS ── */
+.page{display:none}
+.page.on{display:block;animation:fadeUp .35s cubic-bezier(.16,1,.3,1) both}
+
+/* ── RESPONSIVE ── */
+#sb-toggle{display:none}
 @media(max-width:768px){
   #sidebar{transform:translateX(-100%)}
   #sidebar.open{transform:translateX(0)}
   #sb-overlay.show{display:block}
-  #main-content{margin-left:0}
-  #page-area{padding:16px}
+  #main{margin-left:0}
+  #sb-toggle{display:flex}
+  #page-wrap{padding:14px}
+  .stat-card{padding:16px}
+  .stat-val{font-size:22px}
+}
+@media(max-width:480px){
+  #modal-box{padding:20px;border-radius:16px}
+  .login-card{padding:24px}
 }
 
-/* LOGIN PAGE */
-#login-page{position:fixed;inset:0;z-index:200;background:#050508;display:flex;align-items:center;justify-content:center;padding:20px}
-.login-card{background:rgba(13,13,20,.97);border:1px solid rgba(124,58,237,.2);border-radius:24px;padding:40px;width:100%;max-width:420px;box-shadow:0 40px 120px rgba(124,58,237,.15),0 0 0 1px rgba(236,72,153,.08)}
-
-/* LOADING SCREEN */
-#loading-screen{position:fixed;inset:0;z-index:300;background:#050508;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px}
-
-/* CHART WRAPPER */
-.chart-wrap{position:relative;height:220px}
-
-/* MODAL */
-#modal-overlay{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.85);backdrop-filter:blur(16px);align-items:center;justify-content:center;padding:20px}
-#modal-overlay.open{display:flex}
-#modal-box{background:rgba(13,13,20,.99);border:1px solid rgba(124,58,237,.25);border-radius:20px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;position:relative;animation:fadeUp .3s ease both}
-
-/* TOAST */
-#toast-container{position:fixed;bottom:24px;right:24px;z-index:500;display:flex;flex-direction:column;gap:8px}
-.toast{background:#111;border-radius:12px;padding:12px 18px;font-size:13px;border-left:3px solid;box-shadow:0 10px 40px rgba(0,0,0,.5);animation:fadeUp .3s ease;display:flex;align-items:center;gap:10px;min-width:260px;max-width:340px}
-.toast.success{border-color:#10b981;color:#34d399}
-.toast.error{border-color:#ef4444;color:#f87171}
-.toast.info{border-color:#7c3aed;color:#a78bfa}
-
-/* SWITCH */
-.switch{position:relative;width:40px;height:22px;display:inline-block}
-.switch input{display:none}
-.switch-slider{position:absolute;inset:0;background:rgba(255,255,255,.12);border-radius:22px;cursor:pointer;transition:.3s}
-.switch-slider::before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s}
-.switch input:checked+.switch-slider{background:linear-gradient(135deg,#7c3aed,#ec4899)}
-.switch input:checked+.switch-slider::before{transform:translateX(18px)}
-
-/* AVATAR */
-.user-av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#ec4899);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;overflow:hidden;flex-shrink:0}
-.user-av img{width:100%;height:100%;object-fit:cover}
-
-/* SEARCH */
-.search-wrap{position:relative}
-.search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:.4}
-.search-wrap input{padding-left:36px}
-
-/* EMPTY STATE */
-.empty-state{text-align:center;padding:60px 20px;color:rgba(255,255,255,.3)}
-.empty-state svg{margin:0 auto 16px;opacity:.25}
+/* ── MISC ── */
+.divider{height:1px;background:var(--b);margin:20px 0}
+.page-title{font-family:var(--fh);font-size:20px;font-weight:700;margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--t3)}
+.section-title{font-family:var(--fh);font-size:15px;font-weight:600;margin-bottom:3px}
+.tag{font-size:11px;font-weight:600;color:var(--v3);text-transform:uppercase;letter-spacing:.1em}
 </style>
 </head>
 <body>
 
-<!-- LOADING SCREEN -->
-<div id="loading-screen">
-  <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#7c3aed,#ec4899);display:flex;align-items:center;justify-content:center;box-shadow:0 0 40px rgba(124,58,237,.5)">
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+<!-- LOADER -->
+<div id="app-loader">
+  <div style="width:42px;height:42px;border-radius:12px;background:var(--g);display:flex;align-items:center;justify-content:center;box-shadow:0 0 40px rgba(124,58,237,.5)">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
   </div>
-  <div style="text-align:center">
-    <div style="font-size:15px;font-weight:600;color:rgba(255,255,255,.8)">NexBuildr Admin</div>
-    <div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:4px">Verifying access...</div>
-  </div>
-  <div style="width:120px;height:3px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden">
-    <div id="load-bar" style="height:100%;width:0;background:linear-gradient(90deg,#7c3aed,#ec4899);border-radius:3px;transition:width .8s ease"></div>
-  </div>
+  <div class="loader-ring"></div>
+  <p style="font-size:12px;color:var(--t3);font-family:var(--ff)">Verifying access…</p>
 </div>
 
-<!-- LOGIN PAGE -->
-<div id="login-page" style="display:flex">
-  <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(124,58,237,.12),transparent 70%),radial-gradient(ellipse at 80% 20%,rgba(236,72,153,.08),transparent 60%)"></div>
-  <div class="login-card" style="position:relative;z-index:1">
-    <div style="text-align:center;margin-bottom:32px">
-      <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#7c3aed,#ec4899);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 0 40px rgba(124,58,237,.4)">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+<!-- LOGIN -->
+<div id="login-view">
+  <div class="login-bg"></div>
+  <div class="login-card">
+    <!-- Brand -->
+    <div style="text-align:center;margin-bottom:30px">
+      <div style="width:50px;height:50px;border-radius:14px;background:var(--g);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 0 40px rgba(124,58,237,.4)">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
       </div>
-      <div style="font-size:22px;font-weight:700;background:linear-gradient(135deg,#fff,rgba(255,255,255,.7));-webkit-background-clip:text;-webkit-text-fill-color:transparent">Admin Access</div>
-      <div style="font-size:13px;color:rgba(255,255,255,.35);margin-top:6px">NexBuildr Control Center</div>
+      <h1 style="font-family:var(--fh);font-size:22px;font-weight:700">Admin Access</h1>
+      <p style="font-size:13px;color:var(--t3);margin-top:5px">NexBuildr Control Center</p>
     </div>
-    <div id="login-alert" style="display:none;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:10px;padding:10px 14px;font-size:12px;color:#f87171;margin-bottom:16px"></div>
+    <!-- Alert -->
+    <div id="l-alert" class="alert err"></div>
+    <!-- Form -->
     <div style="margin-bottom:14px">
-      <label style="font-size:11px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:6px">Email</label>
-      <input id="login-email" type="email" class="adm-input" placeholder="admin@nexbuildr.com"/>
+      <label class="lbl">Email</label>
+      <input id="l-email" type="email" class="inp" placeholder="admin@nexbuildr.com"/>
     </div>
-    <div style="margin-bottom:22px">
-      <label style="font-size:11px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:6px">Password</label>
-      <input id="login-pass" type="password" class="adm-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')doAdminLogin()"/>
+    <div style="margin-bottom:20px">
+      <label class="lbl">Password</label>
+      <input id="l-pass" type="password" class="inp" placeholder="••••••••" onkeydown="if(event.key==='Enter')loginEmail()"/>
     </div>
-    <button onclick="doAdminLogin()" id="login-btn" class="btn-primary" style="width:100%;padding:12px;font-size:14px;border-radius:10px">
-      Sign In to Admin Panel
-    </button>
+    <button id="l-btn" class="btn-p" style="width:100%;padding:12px" onclick="loginEmail()">Sign In to Admin Panel</button>
+    <!-- Divider -->
     <div style="display:flex;align-items:center;gap:12px;margin:18px 0">
-      <div style="flex:1;height:1px;background:rgba(255,255,255,.08)"></div>
-      <span style="font-size:11px;color:rgba(255,255,255,.25)">or</span>
-      <div style="flex:1;height:1px;background:rgba(255,255,255,.08)"></div>
+      <div style="flex:1;height:1px;background:var(--b)"></div>
+      <span style="font-size:12px;color:var(--t3)">or</span>
+      <div style="flex:1;height:1px;background:var(--b)"></div>
     </div>
-    <button onclick="doGoogleAdminLogin()" id="google-btn" style="width:100%;padding:12px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#fff;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s" onmouseover="this.style.background='rgba(255,255,255,.1)'" onmouseout="this.style.background='rgba(255,255,255,.06)'">
+    <!-- Google -->
+    <button id="g-btn" onclick="loginGoogle()" style="width:100%;padding:11px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:var(--t);font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:.2s;font-family:var(--ff)" onmouseover="this.style.background='rgba(255,255,255,.09)'" onmouseout="this.style.background='rgba(255,255,255,.05)'">
       <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
       Continue with Google
     </button>
-    <div style="text-align:center;margin-top:18px;font-size:11px;color:rgba(255,255,255,.2)">🔒 Restricted access — Admin only</div>
+    <p style="text-align:center;margin-top:18px;font-size:11px;color:var(--t3)">🔒 Restricted — Admins only</p>
   </div>
 </div>
 
-<!-- SIDEBAR OVERLAY (mobile) -->
-<div id="sb-overlay" onclick="closeSidebar()"></div>
+<!-- SIDEBAR OVERLAY -->
+<div id="sb-overlay" onclick="closeSB()"></div>
 
-<!-- SIDEBAR -->
-<aside id="sidebar">
-  <!-- Logo -->
-  <div class="sidebar-logo">
-    <div style="display:flex;align-items:center;gap:10px">
-      <div style="width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#7c3aed,#ec4899);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 16px rgba(124,58,237,.4)">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+<!-- APP -->
+<div id="app-view">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <!-- Logo -->
+    <div class="sb-logo">
+      <div style="display:flex;align-items:center;gap:9px">
+        <div style="width:32px;height:32px;border-radius:9px;background:var(--g);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 16px rgba(124,58,237,.4)">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </div>
+        <div>
+          <div style="font-family:var(--fh);font-size:14px;font-weight:700;background:var(--g);-webkit-background-clip:text;-webkit-text-fill-color:transparent">NexBuildr</div>
+          <div style="font-size:9px;color:var(--t3);letter-spacing:.12em;text-transform:uppercase">Admin Panel</div>
+        </div>
       </div>
-      <div>
-        <div style="font-size:15px;font-weight:700;background:linear-gradient(135deg,#a78bfa,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent">NexBuildr</div>
-        <div style="font-size:9px;font-weight:600;color:rgba(255,255,255,.3);letter-spacing:.1em;text-transform:uppercase">Admin Panel</div>
-      </div>
-    </div>
-    <div style="display:flex;align-items:center;gap:6px;margin-top:14px;padding:8px 10px;background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.18);border-radius:10px">
-      <div class="live-dot"></div>
-      <span style="font-size:11px;color:rgba(255,255,255,.5)">System Online</span>
-      <span id="sb-admin-name" style="font-size:11px;color:#34d399;margin-left:auto">Admin</span>
-    </div>
-  </div>
-
-  <!-- Nav -->
-  <div style="flex:1;overflow-y:auto;padding:8px 0">
-    <div class="nav-section">Main</div>
-    <div class="nav-item active" onclick="navTo('dashboard')">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      Dashboard
-    </div>
-    <div class="nav-item" onclick="navTo('users')">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      Users
-      <span id="sb-user-count" style="margin-left:auto;background:rgba(124,58,237,.2);border:1px solid rgba(124,58,237,.3);border-radius:20px;padding:1px 7px;font-size:10px;color:#a78bfa">-</span>
-    </div>
-    <div class="nav-item" onclick="navTo('feed')">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-      Feed
-    </div>
-    <div class="nav-item" onclick="navTo('showcase')">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-      Startups
-    </div>
-    <div class="nav-section">Insights</div>
-    <div class="nav-item" onclick="navTo('analytics')">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      Analytics
-    </div>
-    <div class="nav-item" onclick="navTo('reports')">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-      Reports
-    </div>
-    <div class="nav-section">System</div>
-    <div class="nav-item" onclick="navTo('settings')">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      Settings
-    </div>
-  </div>
-
-  <!-- Logout -->
-  <div style="padding:12px;border-top:1px solid rgba(255,255,255,.06)">
-    <div onclick="doLogout()" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;color:rgba(239,68,68,.7);font-size:13px;font-weight:500;transition:all .2s;border:1px solid transparent" onmouseover="this.style.background='rgba(239,68,68,.08)';this.style.borderColor='rgba(239,68,68,.2)'" onmouseout="this.style.background='';this.style.borderColor='transparent'">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      Sign Out
-    </div>
-  </div>
-</aside>
-
-<!-- MAIN CONTENT -->
-<div id="main-content" style="display:none">
-  <!-- TOPBAR -->
-  <div id="topbar">
-    <button id="sb-toggle" onclick="toggleSidebar()" style="display:none;background:none;border:none;color:rgba(255,255,255,.6);cursor:pointer;padding:6px" class="md:hidden">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
-    <div style="font-size:15px;font-weight:600;color:#fff" id="page-title">Dashboard</div>
-    <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
-      <div style="font-size:11px;color:rgba(255,255,255,.3)" id="topbar-time"></div>
-      <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:7px 12px">
-        <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#ec4899);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">A</div>
-        <span id="topbar-name" style="font-size:12px;font-weight:500">Admin</span>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:12px;padding:7px 9px;background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.15);border-radius:9px">
+        <div class="live-dot"></div>
+        <span style="font-size:11px;color:var(--t3)">System Live</span>
+        <span id="sb-name" style="font-size:11px;color:#34d399;margin-left:auto">Admin</span>
       </div>
     </div>
-  </div>
 
-  <!-- PAGE AREA -->
-  <div id="page-area">
-
-    <!-- ===================== DASHBOARD ===================== -->
-    <div id="page-dashboard">
-      <div class="fade-up" style="margin-bottom:24px">
-        <div style="font-size:22px;font-weight:700">Good to have you back 👋</div>
-        <div style="font-size:13px;color:rgba(255,255,255,.4);margin-top:4px">Here's what's happening on NexBuildr today.</div>
+    <!-- Nav -->
+    <nav class="sb-nav">
+      <div class="sb-section">Main</div>
+      <div class="nav-item on" data-page="dashboard" onclick="navTo('dashboard')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
       </div>
+      <div class="nav-item" data-page="users" onclick="navTo('users')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Users
+        <span class="nav-badge" id="sb-ucnt">—</span>
+      </div>
+      <div class="nav-item" data-page="content" onclick="navTo('content')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Content
+      </div>
+      <div class="nav-item" data-page="startups" onclick="navTo('startups')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        Startups
+      </div>
+      <div class="sb-section">Analytics</div>
+      <div class="nav-item" data-page="analytics" onclick="navTo('analytics')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Analytics
+      </div>
+      <div class="nav-item" data-page="ai" onclick="navTo('ai')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
+        AI Usage
+      </div>
+      <div class="nav-item" data-page="network" onclick="navTo('network')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/><line x1="20" y1="8" x2="20" y2="14"/></svg>
+        Network
+      </div>
+      <div class="sb-section">Platform</div>
+      <div class="nav-item" data-page="notifications" onclick="navTo('notifications')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Notifications
+      </div>
+      <div class="nav-item" data-page="monetization" onclick="navTo('monetization')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Monetization
+      </div>
+      <div class="nav-item" data-page="settings" onclick="navTo('settings')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Settings
+      </div>
+    </nav>
 
-      <!-- Stats Grid -->
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px" class="fade-up">
-        <div class="stat-card" style="padding:20px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-            <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:.06em;text-transform:uppercase">Total Users</div>
-            <div style="width:32px;height:32px;border-radius:9px;background:rgba(124,58,237,.15);display:flex;align-items:center;justify-content:center">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-            </div>
+    <!-- Footer -->
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="sb-av" id="sb-av">A</div>
+        <div style="min-width:0">
+          <div id="sb-uname" style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Admin</div>
+          <div id="sb-email" style="font-size:10px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">admin@nexbuildr.com</div>
+        </div>
+      </div>
+      <div class="logout-btn" onclick="doLogout()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div id="main">
+    <!-- TOPBAR -->
+    <div id="topbar">
+      <button id="sb-toggle" onclick="toggleSB()" style="background:none;border:none;color:var(--t2);cursor:pointer;padding:6px;display:flex;align-items:center">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div id="tb-title" style="font-family:var(--fh);font-size:15px;font-weight:600">Dashboard</div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+        <div id="tb-time" style="font-size:11px;color:var(--t3)"></div>
+        <button onclick="refreshPage()" class="btn-ghost" style="padding:7px 12px;font-size:12px">↻ Refresh</button>
+      </div>
+    </div>
+
+    <!-- PAGES -->
+    <div id="page-wrap">
+
+      <!-- ══════════════════════════════
+           DASHBOARD
+      ══════════════════════════════ -->
+      <div id="page-dashboard" class="page on">
+        <div class="fade-up" style="margin-bottom:22px">
+          <div class="tag">Overview</div>
+          <div class="page-title">Welcome back 👋</div>
+          <div class="page-sub">Here's what's happening on NexBuildr today.</div>
+        </div>
+        <!-- Stats -->
+        <div id="dash-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:22px" class="fade-up">
+          <div class="skeleton" style="height:100px"></div><div class="skeleton" style="height:100px"></div>
+          <div class="skeleton" style="height:100px"></div><div class="skeleton" style="height:100px"></div>
+        </div>
+        <!-- Charts -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px" class="fade-up">
+          <div class="card" style="padding:18px">
+            <div class="section-title" style="margin-bottom:2px">User Growth</div>
+            <div style="font-size:11px;color:var(--t3);margin-bottom:14px">Registrations over time</div>
+            <div class="chart-wrap"><canvas id="ch-growth"></canvas></div>
           </div>
-          <div id="stat-users" style="font-size:28px;font-weight:700;background:linear-gradient(135deg,#a78bfa,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent">-</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:4px">Registered members</div>
-        </div>
-        <div class="stat-card" style="padding:20px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-            <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:.06em;text-transform:uppercase">Feed Posts</div>
-            <div style="width:32px;height:32px;border-radius:9px;background:rgba(236,72,153,.12);display:flex;align-items:center;justify-content:center">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
-            </div>
+          <div class="card" style="padding:18px">
+            <div class="section-title" style="margin-bottom:2px">Activity</div>
+            <div style="font-size:11px;color:var(--t3);margin-bottom:14px">Posts & startups</div>
+            <div class="chart-wrap"><canvas id="ch-activity"></canvas></div>
           </div>
-          <div id="stat-posts" style="font-size:28px;font-weight:700;background:linear-gradient(135deg,#f472b6,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent">-</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:4px">Published posts</div>
         </div>
-        <div class="stat-card" style="padding:20px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-            <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:.06em;text-transform:uppercase">Startups</div>
-            <div style="width:32px;height:32px;border-radius:9px;background:rgba(16,185,129,.1);display:flex;align-items:center;justify-content:center">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/></svg>
-            </div>
+        <!-- Recent -->
+        <div class="card fade-up" style="padding:18px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <div class="section-title">Recent Users</div>
+            <button class="btn-ghost" style="padding:7px 12px;font-size:12px" onclick="navTo('users')">View All</button>
           </div>
-          <div id="stat-startups" style="font-size:28px;font-weight:700;background:linear-gradient(135deg,#34d399,#059669);-webkit-background-clip:text;-webkit-text-fill-color:transparent">-</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:4px">Listed startups</div>
-        </div>
-        <div class="stat-card" style="padding:20px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-            <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:.06em;text-transform:uppercase">Admins</div>
-            <div style="width:32px;height:32px;border-radius:9px;background:rgba(245,158,11,.1);display:flex;align-items:center;justify-content:center">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            </div>
-          </div>
-          <div id="stat-admins" style="font-size:28px;font-weight:700;background:linear-gradient(135deg,#fbbf24,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent">-</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:4px">Admin accounts</div>
+          <div id="dash-recent"></div>
         </div>
       </div>
 
-      <!-- Charts Row -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px" class="fade-up">
-        <div class="adm-card" style="padding:20px">
-          <div style="font-size:13px;font-weight:600;margin-bottom:4px">User Growth</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:16px">Registrations over time</div>
-          <div class="chart-wrap"><canvas id="chart-growth"></canvas></div>
-        </div>
-        <div class="adm-card" style="padding:20px">
-          <div style="font-size:13px;font-weight:600;margin-bottom:4px">Platform Activity</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:16px">Posts & startups</div>
-          <div class="chart-wrap"><canvas id="chart-activity"></canvas></div>
-        </div>
-      </div>
-
-      <!-- Recent Users -->
-      <div class="adm-card fade-up" style="padding:20px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <!-- ══════════════════════════════
+           USERS
+      ══════════════════════════════ -->
+      <div id="page-users" class="page">
+        <div class="fade-up" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
           <div>
-            <div style="font-size:14px;font-weight:600">Recent Users</div>
-            <div style="font-size:11px;color:rgba(255,255,255,.35)">Latest registrations</div>
+            <div class="tag">Management</div>
+            <div class="page-title">Users</div>
+            <div class="page-sub">Manage all NexBuildr members</div>
           </div>
-          <button onclick="navTo('users')" class="btn-ghost">View All</button>
+          <button class="btn-ghost" onclick="loadUsers()">↻ Refresh</button>
         </div>
-        <div id="recent-users-list">
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <div class="skeleton" style="height:44px"></div>
-            <div class="skeleton" style="height:44px"></div>
-            <div class="skeleton" style="height:44px"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===================== USERS ===================== -->
-    <div id="page-users" style="display:none">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px" class="fade-up">
-        <div>
-          <div style="font-size:20px;font-weight:700">Users Management</div>
-          <div style="font-size:13px;color:rgba(255,255,255,.4);margin-top:2px">Manage all NexBuildr members</div>
-        </div>
-        <button onclick="loadUsers()" class="btn-ghost" style="display:flex;align-items:center;gap:6px">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.96"/></svg>
-          Refresh
-        </button>
-      </div>
-      <div class="adm-card fade-up" style="padding:16px;margin-bottom:16px">
-        <div class="search-wrap">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input id="user-search" type="text" class="adm-input" placeholder="Search users by name, email, or handle..." oninput="filterUsers(this.value)"/>
-        </div>
-      </div>
-      <div class="adm-card fade-up" style="overflow:hidden">
-        <div style="overflow-x:auto">
-          <table class="adm-table">
-            <thead><tr>
-              <th>User</th><th>Handle</th><th>Role</th><th>Badge</th><th>Joined</th><th>Status</th><th>Actions</th>
-            </tr></thead>
-            <tbody id="users-tbody">
-              <tr><td colspan="7"><div class="skeleton" style="height:44px;margin:4px"></div></td></tr>
-              <tr><td colspan="7"><div class="skeleton" style="height:44px;margin:4px"></div></td></tr>
-              <tr><td colspan="7"><div class="skeleton" style="height:44px;margin:4px"></div></td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===================== FEED ===================== -->
-    <div id="page-feed" style="display:none">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px" class="fade-up">
-        <div>
-          <div style="font-size:20px;font-weight:700">Feed Management</div>
-          <div style="font-size:13px;color:rgba(255,255,255,.4);margin-top:2px">Review and moderate community posts</div>
-        </div>
-        <button onclick="loadFeedPosts()" class="btn-ghost" style="display:flex;align-items:center;gap:6px">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.96"/></svg>
-          Refresh
-        </button>
-      </div>
-      <div id="feed-posts-grid" class="fade-up" style="display:flex;flex-direction:column;gap:12px">
-        <div class="skeleton" style="height:100px;border-radius:12px"></div>
-        <div class="skeleton" style="height:100px;border-radius:12px"></div>
-        <div class="skeleton" style="height:100px;border-radius:12px"></div>
-      </div>
-    </div>
-
-    <!-- ===================== SHOWCASE ===================== -->
-    <div id="page-showcase" style="display:none">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px" class="fade-up">
-        <div>
-          <div style="font-size:20px;font-weight:700">Startup Showcase</div>
-          <div style="font-size:13px;color:rgba(255,255,255,.4);margin-top:2px">Manage startup listings and features</div>
-        </div>
-        <button onclick="loadStartups()" class="btn-ghost" style="display:flex;align-items:center;gap:6px">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.96"/></svg>
-          Refresh
-        </button>
-      </div>
-      <div id="startups-grid" class="fade-up" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px">
-        <div class="skeleton" style="height:160px;border-radius:16px"></div>
-        <div class="skeleton" style="height:160px;border-radius:16px"></div>
-        <div class="skeleton" style="height:160px;border-radius:16px"></div>
-      </div>
-    </div>
-
-    <!-- ===================== ANALYTICS ===================== -->
-    <div id="page-analytics" style="display:none">
-      <div style="margin-bottom:24px" class="fade-up">
-        <div style="font-size:20px;font-weight:700">Analytics</div>
-        <div style="font-size:13px;color:rgba(255,255,255,.4);margin-top:2px">Platform performance insights</div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px" class="fade-up">
-        <div class="adm-card" style="padding:20px">
-          <div style="font-size:13px;font-weight:600;margin-bottom:4px">Daily Active Users</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:16px">Simulated activity data</div>
-          <div class="chart-wrap"><canvas id="chart-dau"></canvas></div>
-        </div>
-        <div class="adm-card" style="padding:20px">
-          <div style="font-size:13px;font-weight:600;margin-bottom:4px">Content Growth</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:16px">Posts + startups over time</div>
-          <div class="chart-wrap"><canvas id="chart-content"></canvas></div>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px" class="fade-up">
-        <div class="adm-card" style="padding:20px">
-          <div style="font-size:13px;font-weight:600;margin-bottom:16px">User Roles</div>
-          <div class="chart-wrap" style="height:180px"><canvas id="chart-roles"></canvas></div>
-        </div>
-        <div class="adm-card" style="padding:20px;grid-column:span 2">
-          <div style="font-size:13px;font-weight:600;margin-bottom:16px">Engagement Score</div>
-          <div class="chart-wrap"><canvas id="chart-engagement"></canvas></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===================== REPORTS ===================== -->
-    <div id="page-reports" style="display:none">
-      <div style="margin-bottom:24px" class="fade-up">
-        <div style="font-size:20px;font-weight:700">Reports</div>
-        <div style="font-size:13px;color:rgba(255,255,255,.4);margin-top:2px">Platform overview report</div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" class="fade-up">
-        <div class="adm-card" style="padding:24px">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-            <div style="width:36px;height:36px;border-radius:10px;background:rgba(124,58,237,.15);display:flex;align-items:center;justify-content:center">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        <div class="card fade-up" style="padding:14px;margin-bottom:14px">
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <div class="search-wrap" style="flex:1;min-width:200px">
+              <svg class="si" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input id="u-search" type="text" class="inp search-inp" placeholder="Search by name, email, handle…" oninput="filterUsers()"/>
             </div>
-            <div style="font-size:14px;font-weight:600">User Report</div>
-          </div>
-          <div id="report-users-detail" style="display:flex;flex-direction:column;gap:10px"></div>
-        </div>
-        <div class="adm-card" style="padding:24px">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-            <div style="width:36px;height:36px;border-radius:10px;background:rgba(236,72,153,.12);display:flex;align-items:center;justify-content:center">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/></svg>
-            </div>
-            <div style="font-size:14px;font-weight:600">Content Report</div>
-          </div>
-          <div id="report-content-detail" style="display:flex;flex-direction:column;gap:10px"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===================== SETTINGS ===================== -->
-    <div id="page-settings" style="display:none">
-      <div style="margin-bottom:24px" class="fade-up">
-        <div style="font-size:20px;font-weight:700">Settings</div>
-        <div style="font-size:13px;color:rgba(255,255,255,.4);margin-top:2px">Platform and admin configuration</div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" class="fade-up">
-        <div class="adm-card" style="padding:24px">
-          <div style="font-size:14px;font-weight:600;margin-bottom:4px">Admin Profile</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:20px">Your admin account details</div>
-          <div style="display:flex;align-items:center;gap:14px;padding:16px;background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.15);border-radius:12px;margin-bottom:16px">
-            <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#ec4899);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700">A</div>
-            <div>
-              <div id="set-admin-name" style="font-size:14px;font-weight:600">Admin</div>
-              <div id="set-admin-email" style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2b4a4f4642456b454e53495e42474f5905484446">[email&#160;protected]</a></div>
-              <span class="badge badge-admin" style="margin-top:6px">Admin</span>
-            </div>
+            <select id="u-role-filter" class="inp" style="width:auto;padding:9px 14px" onchange="filterUsers()">
+              <option value="">All Roles</option>
+              <option value="admin">Admin</option>
+              <option value="user">User</option>
+            </select>
           </div>
         </div>
-        <div class="adm-card" style="padding:24px">
-          <div style="font-size:14px;font-weight:600;margin-bottom:4px">Platform Controls</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:20px">System toggles and configuration</div>
-          <div style="display:flex;flex-direction:column;gap:14px">
-            <div style="display:flex;align-items:center;justify-content:space-between">
-              <div><div style="font-size:13px;font-weight:500">New Registrations</div><div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px">Allow new user signups</div></div>
-              <label class="switch"><input type="checkbox" checked/><span class="switch-slider"></span></label>
-            </div>
-            <div style="height:1px;background:rgba(255,255,255,.05)"></div>
-            <div style="display:flex;align-items:center;justify-content:space-between">
-              <div><div style="font-size:13px;font-weight:500">Community Feed</div><div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px">Enable post creation</div></div>
-              <label class="switch"><input type="checkbox" checked/><span class="switch-slider"></span></label>
-            </div>
-            <div style="height:1px;background:rgba(255,255,255,.05)"></div>
-            <div style="display:flex;align-items:center;justify-content:space-between">
-              <div><div style="font-size:13px;font-weight:500">Startup Submissions</div><div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px">Accept new startup listings</div></div>
-              <label class="switch"><input type="checkbox" checked/><span class="switch-slider"></span></label>
-            </div>
-            <div style="height:1px;background:rgba(255,255,255,.05)"></div>
-            <div style="display:flex;align-items:center;justify-content:space-between">
-              <div><div style="font-size:13px;font-weight:500">Maintenance Mode</div><div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px">Show maintenance page</div></div>
-              <label class="switch"><input type="checkbox"/><span class="switch-slider"></span></label>
-            </div>
+        <div class="card fade-up" style="overflow:hidden">
+          <div style="overflow-x:auto">
+            <table class="tbl">
+              <thead><tr>
+                <th>User</th><th>Handle</th><th>Role</th><th>Badge</th><th>Joined</th><th>Status</th><th style="text-align:right">Actions</th>
+              </tr></thead>
+              <tbody id="u-tbody">
+                <tr><td colspan="7"><div class="skeleton" style="height:40px;margin:4px"></div></td></tr>
+                <tr><td colspan="7"><div class="skeleton" style="height:40px;margin:4px"></div></td></tr>
+                <tr><td colspan="7"><div class="skeleton" style="height:40px;margin:4px"></div></td></tr>
+              </tbody>
+            </table>
           </div>
-        </div>
-        <div class="adm-card" style="padding:24px;grid-column:span 2">
-          <div style="font-size:14px;font-weight:600;margin-bottom:4px">Make User Admin</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:16px">Grant admin role to a user by their UID</div>
-          <div style="display:flex;gap:10px">
-            <input id="make-admin-uid" type="text" class="adm-input" placeholder="Enter user UID from Firebase..."/>
-            <button onclick="makeUserAdmin()" class="btn-primary" style="white-space:nowrap">Grant Admin</button>
-          </div>
-          <div id="make-admin-msg" style="display:none;margin-top:10px;font-size:12px"></div>
         </div>
       </div>
-    </div>
 
-  </div><!-- /page-area -->
-</div><!-- /main-content -->
+      <!-- ══════════════════════════════
+           CONTENT
+      ══════════════════════════════ -->
+      <div id="page-content" class="page">
+        <div class="fade-up" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+          <div>
+            <div class="tag">Moderation</div>
+            <div class="page-title">Content Control</div>
+            <div class="page-sub">Review and moderate community posts</div>
+          </div>
+          <button class="btn-ghost" onclick="loadContent()">↻ Refresh</button>
+        </div>
+        <div id="content-list" class="fade-up" style="display:flex;flex-direction:column;gap:12px"></div>
+      </div>
+
+      <!-- ══════════════════════════════
+           STARTUPS
+      ══════════════════════════════ -->
+      <div id="page-startups" class="page">
+        <div class="fade-up" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+          <div>
+            <div class="tag">Showcase</div>
+            <div class="page-title">Startup Submissions</div>
+            <div class="page-sub">Manage startup listings and features</div>
+          </div>
+          <button class="btn-ghost" onclick="loadStartups()">↻ Refresh</button>
+        </div>
+        <div id="startup-grid" class="fade-up" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px"></div>
+      </div>
+
+      <!-- ══════════════════════════════
+           ANALYTICS
+      ══════════════════════════════ -->
+      <div id="page-analytics" class="page">
+        <div class="fade-up" style="margin-bottom:22px">
+          <div class="tag">Insights</div>
+          <div class="page-title">Analytics</div>
+          <div class="page-sub">Platform performance data</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px" class="fade-up">
+          <div class="card" style="padding:18px">
+            <div class="section-title" style="margin-bottom:14px">Daily Active Users</div>
+            <div class="chart-wrap"><canvas id="ch-dau"></canvas></div>
+          </div>
+          <div class="card" style="padding:18px">
+            <div class="section-title" style="margin-bottom:14px">Content Growth</div>
+            <div class="chart-wrap"><canvas id="ch-content"></canvas></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px" class="fade-up">
+          <div class="card" style="padding:18px">
+            <div class="section-title" style="margin-bottom:14px">User Roles</div>
+            <div class="chart-wrap" style="height:180px"><canvas id="ch-roles"></canvas></div>
+          </div>
+          <div class="card" style="padding:18px">
+            <div class="section-title" style="margin-bottom:14px">Weekly Engagement</div>
+            <div class="chart-wrap"><canvas id="ch-engage"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════
+           AI USAGE
+      ══════════════════════════════ -->
+      <div id="page-ai" class="page">
+        <div class="fade-up" style="margin-bottom:22px">
+          <div class="tag">AI Control</div>
+          <div class="page-title">AI Usage Tracker</div>
+          <div class="page-sub">Monitor and control per-user AI consumption</div>
+        </div>
+        <!-- AI Stats -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:22px" class="fade-up">
+          <div class="stat-card">
+            <div class="stat-ic" style="background:rgba(124,58,237,.15);margin-bottom:10px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg></div>
+            <div class="stat-val g-text" id="ai-total">—</div>
+            <div class="stat-lbl" style="margin-top:4px">Total Requests</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-ic" style="background:rgba(236,72,153,.1);margin-bottom:10px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+            <div class="stat-val" style="background:linear-gradient(135deg,#f472b6,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text" id="ai-users">—</div>
+            <div class="stat-lbl" style="margin-top:4px">Active AI Users</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-ic" style="background:rgba(245,158,11,.1);margin-bottom:10px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+            <div class="stat-val" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text" id="ai-avg">—</div>
+            <div class="stat-lbl" style="margin-top:4px">Avg per User</div>
+          </div>
+        </div>
+        <!-- Per-user table -->
+        <div class="card fade-up" style="overflow:hidden">
+          <div style="padding:16px;border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between">
+            <div class="section-title">Per-User AI Usage</div>
+            <span style="font-size:11px;color:var(--t3)">Based on aiRequests field</span>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="tbl">
+              <thead><tr><th>User</th><th>Email</th><th>Requests</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="ai-tbody"><tr><td colspan="5"><div class="empty"><p>Loading AI data…</p></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════
+           NETWORK
+      ══════════════════════════════ -->
+      <div id="page-network" class="page">
+        <div class="fade-up" style="margin-bottom:22px">
+          <div class="tag">Network</div>
+          <div class="page-title">Network Management</div>
+          <div class="page-sub">Manage founder and investor profiles</div>
+        </div>
+        <div class="card fade-up" style="overflow:hidden">
+          <div style="overflow-x:auto">
+            <table class="tbl">
+              <thead><tr><th>Profile</th><th>Role</th><th>Connections</th><th>Connecting</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="net-tbody"><tr><td colspan="6"><div class="skeleton" style="height:40px;margin:4px"></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════
+           NOTIFICATIONS
+      ══════════════════════════════ -->
+      <div id="page-notifications" class="page">
+        <div class="fade-up" style="margin-bottom:22px">
+          <div class="tag">Broadcast</div>
+          <div class="page-title">Notifications</div>
+          <div class="page-sub">Send announcements to all users</div>
+        </div>
+        <div class="card fade-up" style="padding:22px;max-width:580px">
+          <div class="section-title" style="margin-bottom:16px">Send Broadcast Message</div>
+          <div id="notif-alert" class="alert ok"></div>
+          <div style="margin-bottom:14px">
+            <label class="lbl">Title</label>
+            <input id="n-title" type="text" class="inp" placeholder="Announcement title…"/>
+          </div>
+          <div style="margin-bottom:14px">
+            <label class="lbl">Message</label>
+            <textarea id="n-body" class="inp" rows="4" placeholder="Write your message here…" style="resize:vertical"></textarea>
+          </div>
+          <div style="margin-bottom:18px">
+            <label class="lbl">Type</label>
+            <select id="n-type" class="inp" style="padding:9px 14px">
+              <option value="announcement">Announcement</option>
+              <option value="update">Platform Update</option>
+              <option value="maintenance">Maintenance</option>
+            </select>
+          </div>
+          <button class="btn-p" onclick="sendNotification()" style="width:100%;padding:11px">Send to All Users</button>
+        </div>
+        <div class="card fade-up" style="margin-top:16px;padding:18px;max-width:580px">
+          <div class="section-title" style="margin-bottom:14px">Recent Broadcasts</div>
+          <div id="notif-list"><div class="empty"><p style="font-size:13px">No announcements sent yet.</p></div></div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════
+           MONETIZATION
+      ══════════════════════════════ -->
+      <div id="page-monetization" class="page">
+        <div class="fade-up" style="margin-bottom:22px">
+          <div class="tag">Revenue</div>
+          <div class="page-title">Monetization</div>
+          <div class="page-sub">Track paid users and subscription status</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:22px" class="fade-up">
+          <div class="stat-card"><div class="stat-val g-text" id="m-paid">—</div><div class="stat-lbl" style="margin-top:6px">Paid Users</div></div>
+          <div class="stat-card"><div class="stat-val" style="color:#34d399" id="m-free">—</div><div class="stat-lbl" style="margin-top:6px">Free Users</div></div>
+          <div class="stat-card"><div class="stat-val" style="color:#fbbf24" id="m-rev">₹0</div><div class="stat-lbl" style="margin-top:6px">Est. Revenue</div></div>
+        </div>
+        <div class="card fade-up" style="overflow:hidden">
+          <div style="overflow-x:auto">
+            <table class="tbl">
+              <thead><tr><th>User</th><th>Plan</th><th>Since</th><th>Status</th></tr></thead>
+              <tbody id="m-tbody"><tr><td colspan="4"><div class="empty"><p style="font-size:13px;padding:20px">Payment data will appear here when integrated.</p></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════
+           SETTINGS
+      ══════════════════════════════ -->
+      <div id="page-settings" class="page">
+        <div class="fade-up" style="margin-bottom:22px">
+          <div class="tag">Configuration</div>
+          <div class="page-title">Settings</div>
+          <div class="page-sub">Platform controls and admin config</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" class="fade-up">
+          <!-- Admin Profile -->
+          <div class="card" style="padding:22px">
+            <div class="section-title" style="margin-bottom:14px">Admin Profile</div>
+            <div style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--card2);border:1px solid var(--b);border-radius:12px;margin-bottom:16px">
+              <div style="width:46px;height:46px;border-radius:50%;background:var(--g);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700" id="set-av">A</div>
+              <div>
+                <div id="set-name" style="font-size:14px;font-weight:600">Admin</div>
+                <div id="set-email" style="font-size:12px;color:var(--t3)">—</div>
+                <span class="badge badge-purple" style="margin-top:6px">Admin</span>
+              </div>
+            </div>
+            <div style="margin-bottom:14px">
+              <label class="lbl">Grant Admin Role by UID</label>
+              <input id="set-uid" type="text" class="inp" placeholder="Firebase user UID…"/>
+            </div>
+            <div id="set-msg" class="alert ok"></div>
+            <button class="btn-p" onclick="grantAdmin()" style="width:100%;padding:10px">Grant Admin</button>
+          </div>
+          <!-- Platform Controls -->
+          <div class="card" style="padding:22px">
+            <div class="section-title" style="margin-bottom:16px">Platform Controls</div>
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div><div style="font-size:13px;font-weight:500">New Registrations</div><div style="font-size:11px;color:var(--t3);margin-top:2px">Allow new signups</div></div>
+                <label class="sw"><input type="checkbox" checked/><span class="sw-sl"></span></label>
+              </div>
+              <div style="height:1px;background:var(--b)"></div>
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div><div style="font-size:13px;font-weight:500">Community Feed</div><div style="font-size:11px;color:var(--t3);margin-top:2px">Enable post creation</div></div>
+                <label class="sw"><input type="checkbox" checked/><span class="sw-sl"></span></label>
+              </div>
+              <div style="height:1px;background:var(--b)"></div>
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div><div style="font-size:13px;font-weight:500">Startup Submissions</div><div style="font-size:11px;color:var(--t3);margin-top:2px">Accept new listings</div></div>
+                <label class="sw"><input type="checkbox" checked/><span class="sw-sl"></span></label>
+              </div>
+              <div style="height:1px;background:var(--b)"></div>
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div><div style="font-size:13px;font-weight:500">AI Features</div><div style="font-size:11px;color:var(--t3);margin-top:2px">NexAI assistant</div></div>
+                <label class="sw"><input type="checkbox" checked/><span class="sw-sl"></span></label>
+              </div>
+              <div style="height:1px;background:var(--b)"></div>
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div><div style="font-size:13px;font-weight:500">Maintenance Mode</div><div style="font-size:11px;color:var(--t3);margin-top:2px">Show maintenance page</div></div>
+                <label class="sw"><input type="checkbox"/><span class="sw-sl"></span></label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /page-wrap -->
+  </div><!-- /main -->
+</div><!-- /app-view -->
 
 <!-- MODAL -->
-<div id="modal-overlay" onclick="if(event.target===this)closeModal()">
-  <div id="modal-box" style="padding:28px">
-    <button onclick="closeModal()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,.07);border:none;color:rgba(255,255,255,.5);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px">✕</button>
+<div id="modal-bg" onclick="if(event.target===this)closeModal()">
+  <div id="modal-box">
+    <button onclick="closeModal()" style="position:absolute;top:14px;right:14px;background:rgba(255,255,255,.07);border:none;color:var(--t3);width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center">✕</button>
     <div id="modal-content"></div>
   </div>
 </div>
 
-<!-- TOAST -->
-<div id="toast-container"></div>
+<!-- TOASTS -->
+<div id="toasts"></div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-// ============================================================
-// FIREBASE CONFIG
-// ============================================================
-const FC = {
-  apiKey:"AIzaSyDOEDheA7whqz4Y50dPtXJxHVcOHT5cYMU",
-  authDomain:"nexbuildr-c2660.firebaseapp.com",
-  projectId:"nexbuildr-c2660",
-  storageBucket:"nexbuildr-c2660.firebasestorage.app",
-  messagingSenderId:"116373525590",
-  appId:"1:116373525590:web:ce249c4ec3ac4d48ae97f7"
+<script>
+// ═══════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════
+var FC = {
+  apiKey: "AIzaSyDOEDheA7whqz4Y50dPtXJxHVcOHT5cYMU",
+  authDomain: "nexbuildr-c2660.firebaseapp.com",
+  projectId: "nexbuildr-c2660",
+  storageBucket: "nexbuildr-c2660.firebasestorage.app",
+  messagingSenderId: "116373525590",
+  appId: "1:116373525590:web:ce249c4ec3ac4d48ae97f7"
 };
-var auth, db, CU = null;
-var allUsers = [], chartInstances = {};
-var currentPage = 'dashboard';
 
-// ============================================================
-// INIT
-// ============================================================
-// ============================================================
-// ADMIN EMAILS — Add your email here for instant access
-// ============================================================
+// ADMIN WHITELIST — add your email here
 var ADMIN_EMAILS = [
   'nexbuildrcorporation@gmail.com',
   'atharv@nexbuildr.com'
 ];
 
-function grantAccess(user) {
-  var email = (user.email || '').toLowerCase();
-  var name = user.displayName || email.split('@')[0];
-  name = name.charAt(0).toUpperCase() + name.slice(1);
-  ['sb-admin-name','topbar-name','set-admin-name'].forEach(function(id){
-    var el = document.getElementById(id); if(el) el.textContent = name;
-  });
-  var em = document.getElementById('set-admin-email');
-  if(em) em.textContent = user.email || '';
-  document.getElementById('loading-screen').style.display = 'none';
-  document.getElementById('login-page').style.display = 'none';
-  document.getElementById('main-content').style.display = 'flex';
-  loadDashboard();
-}
+var auth = null, db = null, CU = null;
+var allUsers = [], charts = {}, currentPage = 'dashboard';
 
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
 window.addEventListener('load', function() {
-  // Init Firebase
   try {
     if (!firebase.apps || !firebase.apps.length) firebase.initializeApp(FC);
     auth = firebase.auth();
     db = firebase.firestore();
   } catch(e) {
-    showLoginPage();
-    return;
+    hideLoader(); showLogin(); return;
   }
-
-  // Handle Google redirect result (fires after coming back from Google)
-  auth.getRedirectResult().then(function(result) {
-    if (result && result.user) {
-      var u = result.user;
-      CU = u;
-      var em = (u.email||'').toLowerCase();
-      var isAdmin = ADMIN_EMAILS.some(function(a){ return a.toLowerCase()===em; });
-      if (!isAdmin) {
-        auth.signOut();
-        showLoginPage();
-        setTimeout(function(){
-          showLoginAlert('Access denied — ' + em + ' is not an admin account.');
-        }, 300);
-        return;
-      }
-      // Show loading while setting up
-      document.getElementById('login-page').style.display = 'none';
-      document.getElementById('loading-screen').style.display = 'flex';
-      setTimeout(function(){ grantAccess(u); }, 500);
-    }
-  }).catch(function(err) {
-    console.warn('Redirect error:', err.message);
-  });
 
   // Mobile sidebar
   function checkMobile() {
     var t = document.getElementById('sb-toggle');
-    if (t) t.style.display = window.innerWidth <= 768 ? 'block' : 'none';
+    if (t) t.style.display = window.innerWidth <= 768 ? 'flex' : 'none';
   }
   checkMobile();
   window.addEventListener('resize', checkMobile);
 
   // Clock
-  updateClock();
-  setInterval(updateClock, 1000);
+  function tick() {
+    var el = document.getElementById('tb-time');
+    if (el) el.textContent = new Date().toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit',hour12:true}) + ' · ' + new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  }
+  tick(); setInterval(tick, 1000);
 
-  // SIMPLE: just show login page immediately. No waiting.
-  // If user was already signed in, check quickly.
-  var checked = false;
-  var quickCheck = setTimeout(function() {
-    if (!checked) showLoginPage();
-  }, 3000);
+  // Auth
+  var done = false;
+  var timeout = setTimeout(function() {
+    if (!done) { hideLoader(); showLogin(); }
+  }, 6000);
 
   auth.onAuthStateChanged(function(user) {
-    if (checked) return; // ignore repeated calls
-    checked = true;
-    clearTimeout(quickCheck);
-
-    if (!user) {
-      showLoginPage();
-      return;
-    }
-
-    // User already signed in — check if admin
+    if (done) return;
+    done = true;
+    clearTimeout(timeout);
+    if (!user) { hideLoader(); showLogin(); return; }
+    var em = (user.email || '').toLowerCase();
+    var ok = ADMIN_EMAILS.some(function(a) { return a.toLowerCase() === em; });
+    if (!ok) { auth.signOut(); hideLoader(); showLogin(); setTimeout(function(){showAlert('l-alert','Access denied — not an admin account.','err');},300); return; }
     CU = user;
-    var email = (user.email || '').toLowerCase();
-    var isAdmin = ADMIN_EMAILS.some(function(e){ return e.toLowerCase() === email; });
-
-    if (isAdmin) {
-      grantAccess(user);
-    } else {
-      auth.signOut();
-      showLoginPage();
-    }
+    setAdminUI(user);
+    hideLoader(); showApp();
+    loadDashboard();
   });
 });
 
-// ============================================================
+function hideLoader() { var l = document.getElementById('app-loader'); if(l){l.classList.add('hide');setTimeout(function(){l.style.display='none';},500);} }
+function showLogin() { document.getElementById('login-view').classList.add('show'); document.getElementById('app-view').classList.remove('show'); }
+function showApp() { document.getElementById('login-view').classList.remove('show'); document.getElementById('app-view').classList.add('show'); }
+
+function setAdminUI(user) {
+  var name = user.displayName || (user.email ? user.email.split('@')[0] : 'Admin');
+  name = name.charAt(0).toUpperCase() + name.slice(1);
+  ['sb-name','sb-uname'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=name;});
+  var em = document.getElementById('sb-email'); if(em)em.textContent=user.email||'';
+  var snm = document.getElementById('set-name'); if(snm)snm.textContent=name;
+  var sem = document.getElementById('set-email'); if(sem)sem.textContent=user.email||'';
+  if (user.photoURL) {
+    ['sb-av','set-av'].forEach(function(id){
+      var el=document.getElementById(id);
+      if(el)el.innerHTML='<img src="'+user.photoURL+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>';
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════
 // AUTH
-// ============================================================
-function doGoogleAdminLogin() {
-  if (!auth) { showLoginAlert('Firebase is loading, please wait 2 seconds and try again.'); return; }
-  var btn = document.getElementById('google-btn');
-  var gIcon = '<svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>';
-  btn.innerHTML = gIcon + ' Redirecting to Google...';
-  btn.disabled = true;
-  var provider = new firebase.auth.GoogleAuthProvider();
-  provider.addScope('email');
-  provider.addScope('profile');
-  // Use redirect (works on ALL mobile browsers — no popup blocking issues)
-  auth.signInWithRedirect(provider).catch(function(err) {
-    showLoginAlert('Error: ' + err.message);
-    btn.innerHTML = gIcon + ' Continue with Google';
-    btn.disabled = false;
-  });
+// ═══════════════════════════════════════════════
+function loginEmail() {
+  var em = document.getElementById('l-email').value.trim();
+  var pw = document.getElementById('l-pass').value;
+  if (!em) { showAlert('l-alert','Please enter your email.','err'); return; }
+  if (!pw) { showAlert('l-alert','Please enter your password.','err'); return; }
+  if (!auth) { tryInitFirebase(); if(!auth){showAlert('l-alert','Connection error. Refresh the page.','err');return;} }
+  var btn = document.getElementById('l-btn');
+  btn.textContent = 'Signing in…'; btn.disabled = true;
+  hideAlert('l-alert');
+  auth.signInWithEmailAndPassword(em, pw)
+    .then(function(r) {
+      var email = (r.user.email||'').toLowerCase();
+      var ok = ADMIN_EMAILS.some(function(a){return a.toLowerCase()===email;});
+      if (!ok) { auth.signOut(); showAlert('l-alert','Access denied — not an admin account.','err'); return; }
+      CU = r.user; setAdminUI(r.user); showApp(); loadDashboard();
+    })
+    .catch(function(e) {
+      var c = e.code;
+      var msg = c==='auth/user-not-found' ? 'No account with this email.'
+        : c==='auth/wrong-password'||c==='auth/invalid-credential' ? 'Wrong password. Used Google to signup? Click Google button.'
+        : c==='auth/invalid-email' ? 'Invalid email.'
+        : c==='auth/too-many-requests' ? 'Too many attempts. Try later.'
+        : e.message;
+      showAlert('l-alert', msg, 'err');
+    })
+    .finally(function(){btn.textContent='Sign In to Admin Panel';btn.disabled=false;});
 }
 
-function doAdminLogin() {
-  if (!auth) { showLoginAlert('Firebase is loading, please wait 2 seconds and try again.'); return; }
-  var emailVal = document.getElementById('login-email').value.trim();
-  var passVal = document.getElementById('login-pass').value;
-  if (!emailVal) { showLoginAlert('Please enter your email.'); return; }
-  if (!passVal) { showLoginAlert('Please enter your password.'); return; }
-  var btn = document.getElementById('login-btn');
-  btn.textContent = 'Signing in...'; btn.disabled = true;
-  auth.signInWithEmailAndPassword(emailVal, passVal)
-    .then(function(result) {
-      var u = result.user;
-      CU = u;
-      var em = (u.email||'').toLowerCase();
-      var isAdmin = ADMIN_EMAILS.some(function(a){ return a.toLowerCase()===em; });
-      if (!isAdmin) {
-        auth.signOut();
-        showLoginAlert('Access denied — this account is not an admin.');
-        return;
-      }
-      grantAccess(u);
+function loginGoogle() {
+  if (!auth) { tryInitFirebase(); if(!auth){showAlert('l-alert','Connection error. Refresh.','err');return;} }
+  var btn = document.getElementById('g-btn');
+  var gico = '<svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>';
+  btn.innerHTML = gico + ' Signing in…'; btn.disabled = true;
+  var prov = new firebase.auth.GoogleAuthProvider();
+  prov.addScope('email');
+  auth.signInWithPopup(prov)
+    .then(function(r) {
+      var email = (r.user.email||'').toLowerCase();
+      var ok = ADMIN_EMAILS.some(function(a){return a.toLowerCase()===email;});
+      if (!ok) { auth.signOut(); showAlert('l-alert','Access denied — '+email+' is not an admin.','err'); btn.innerHTML=gico+' Continue with Google'; btn.disabled=false; return; }
+      CU = r.user; setAdminUI(r.user); showApp(); loadDashboard();
     })
-    .catch(function(err) {
-      var msg = err.code==='auth/wrong-password'||err.code==='auth/invalid-credential'
-        ? 'Wrong password. If you signed up with Google, use "Continue with Google" button.'
-        : err.code==='auth/user-not-found' ? 'No account found with this email.'
-        : err.code==='auth/invalid-email' ? 'Invalid email address.'
-        : err.code==='auth/too-many-requests' ? 'Too many attempts. Try again later.'
-        : err.message;
-      showLoginAlert(msg);
-    })
-    .finally(function() { btn.textContent = 'Sign In to Admin Panel'; btn.disabled = false; });
-}
-function showLoginAlert(msg) { var al = document.getElementById('login-alert'); al.textContent = msg; al.style.display = 'block'; }
-function doLogout() { auth.signOut().then(function() { showLoginPage(); }); }
-function showLoginPage() {
-  document.getElementById('loading-screen').style.display = 'none';
-  document.getElementById('main-content').style.display = 'none';
-  document.getElementById('login-page').style.display = 'flex';
+    .catch(function(e) {
+      if (e.code==='auth/popup-closed-by-user'||e.code==='auth/cancelled-popup-request') { btn.innerHTML=gico+' Continue with Google'; btn.disabled=false; return; }
+      var msg = e.code==='auth/popup-blocked' ? 'Popup blocked. Allow popups for this site.' : e.message;
+      showAlert('l-alert', msg, 'err');
+      btn.innerHTML = gico + ' Continue with Google'; btn.disabled = false;
+    });
 }
 
-// ============================================================
+function doLogout() { if(auth) auth.signOut().then(function(){showLogin();}); }
+
+function tryInitFirebase() {
+  try {
+    if (!firebase.apps||!firebase.apps.length) firebase.initializeApp(FC);
+    auth = firebase.auth(); db = firebase.firestore();
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════
 // NAVIGATION
-// ============================================================
+// ═══════════════════════════════════════════════
+var pageTitles = {
+  dashboard:'Dashboard', users:'User Management', content:'Content Control',
+  startups:'Startup Showcase', analytics:'Analytics', ai:'AI Usage',
+  network:'Network Management', notifications:'Notifications',
+  monetization:'Monetization', settings:'Settings'
+};
+
 function navTo(page) {
-  // Hide all pages
-  ['dashboard','users','feed','showcase','analytics','reports','settings'].forEach(function(p) {
-    document.getElementById('page-' + p).style.display = 'none';
-  });
-  // Update nav
-  document.querySelectorAll('.nav-item').forEach(function(el) { el.classList.remove('active'); });
-  event && event.currentTarget && event.currentTarget.classList.add('active');
-
-  // Show target
-  var target = document.getElementById('page-' + page);
-  if (target) { target.style.display = 'block'; target.classList.add('fade-up'); }
-
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('on');});
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('on');});
+  var pg = document.getElementById('page-'+page);
+  if (pg) pg.classList.add('on');
+  document.querySelectorAll('.nav-item[data-page="'+page+'"]').forEach(function(n){n.classList.add('on');});
+  var tt = document.getElementById('tb-title');
+  if (tt) tt.textContent = pageTitles[page]||page;
   currentPage = page;
-  var titles = {dashboard:'Dashboard',users:'Users Management',feed:'Feed Management',showcase:'Startup Showcase',analytics:'Analytics',reports:'Reports',settings:'Settings'};
-  document.getElementById('page-title').textContent = titles[page] || page;
-
-  // Trigger nav item active state
-  document.querySelectorAll('.nav-item').forEach(function(el) {
-    if (el.getAttribute('onclick') && el.getAttribute('onclick').includes("'" + page + "'")) {
-      el.classList.add('active');
-    }
-  });
-
-  // Load data
-  if (page === 'users') loadUsers();
-  else if (page === 'feed') loadFeedPosts();
-  else if (page === 'showcase') loadStartups();
-  else if (page === 'analytics') loadAnalytics();
-  else if (page === 'reports') loadReports();
-
-  closeSidebar();
+  closeSB();
+  // Lazy load
+  if (page==='users') loadUsers();
+  else if (page==='content') loadContent();
+  else if (page==='startups') loadStartups();
+  else if (page==='analytics') loadAnalytics();
+  else if (page==='ai') loadAI();
+  else if (page==='network') loadNetwork();
+  else if (page==='monetization') loadMonetization();
 }
 
-// ============================================================
-// SIDEBAR (MOBILE)
-// ============================================================
-function toggleSidebar() {
+function refreshPage() { navTo(currentPage); }
+
+// ═══════════════════════════════════════════════
+// SIDEBAR MOBILE
+// ═══════════════════════════════════════════════
+function toggleSB() {
   document.getElementById('sidebar').classList.toggle('open');
   document.getElementById('sb-overlay').classList.toggle('show');
 }
-function closeSidebar() {
+function closeSB() {
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sb-overlay').classList.remove('show');
 }
 
-// ============================================================
-// CLOCK
-// ============================================================
-function updateClock() {
-  var now = new Date();
-  document.getElementById('topbar-time').textContent = now.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit',hour12:true}) + ' · ' + now.toLocaleDateString('en-US', {month:'short',day:'numeric'});
-}
-
-// ============================================================
+// ═══════════════════════════════════════════════
 // DASHBOARD
-// ============================================================
-async function loadDashboard() {
-  try {
-    var [usersSnap, postsSnap, startupsSnap] = await Promise.all([
-      db.collection('users').get(),
-      db.collection('feed').get(),
-      db.collection('startups').get()
-    ]);
-    var total = usersSnap.size;
-    var admins = usersSnap.docs.filter(d => d.data().role === 'admin').length;
-    document.getElementById('stat-users').textContent = total;
-    document.getElementById('stat-posts').textContent = postsSnap.size;
-    document.getElementById('stat-startups').textContent = startupsSnap.size;
-    document.getElementById('stat-admins').textContent = admins;
-    document.getElementById('sb-user-count').textContent = total;
+// ═══════════════════════════════════════════════
+function loadDashboard() {
+  if (!db) return;
+  Promise.all([
+    db.collection('users').get(),
+    db.collection('feed').get(),
+    db.collection('startups').get()
+  ]).then(function(snaps) {
+    var usnap=snaps[0], fsnap=snaps[1], ssnap=snaps[2];
+    allUsers = usnap.docs.map(function(d){return Object.assign({uid:d.id},d.data());});
+    var total=usnap.size, posts=fsnap.size, startups=ssnap.size;
+    var admins=allUsers.filter(function(u){return u.role==='admin';}).length;
+    document.getElementById('sb-ucnt').textContent = total;
+
+    // Stats
+    document.getElementById('dash-stats').innerHTML = [
+      ['Total Users',total,'rgba(124,58,237,.15)','#a78bfa','var(--g)','M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2'],
+      ['Feed Posts',posts,'rgba(236,72,153,.1)','#f472b6','linear-gradient(135deg,#f472b6,#7c3aed)','M11 4H4a2 2 0 0 0-2 2v14'],
+      ['Startups',startups,'rgba(16,185,129,.1)','#34d399','linear-gradient(135deg,#34d399,#059669)','M12 2L2 7l10 5 10-5-10-5z'],
+      ['Admins',admins,'rgba(245,158,11,.1)','#fbbf24','linear-gradient(135deg,#fbbf24,#f59e0b)','M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z']
+    ].map(function(s) {
+      return '<div class="stat-card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'
+        +'<div class="stat-ic" style="background:'+s[2]+'"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="'+s[3]+'" stroke-width="2"><path d="'+s[5]+'"/></svg></div></div>'
+        +'<div class="stat-val" style="background:'+s[4]+';-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">'+s[1]+'</div>'
+        +'<div class="stat-lbl" style="margin-top:5px">'+s[0]+'</div></div>';
+    }).join('');
+
+    buildDashCharts(total, posts, startups);
 
     // Recent users
-    var recent = usersSnap.docs.slice(0, 5).map(d => Object.assign({uid: d.id}, d.data()));
-    var html = recent.map(function(u) {
+    var recent = allUsers.slice(0,5);
+    document.getElementById('dash-recent').innerHTML = recent.length ? recent.map(function(u) {
       var av = u.photo ? '<img src="'+u.photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>' : (u.name||'U').charAt(0);
-      return '<div style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05)">'
-        + '<div class="user-av">'+av+'</div>'
-        + '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(u.name||'Builder')+'</div>'
-        + '<div style="font-size:11px;color:rgba(255,255,255,.35)">'+(u.email||'')+'</div></div>'
-        + '<span class="badge '+(u.role==='admin'?'badge-admin':'badge-user')+'">'+( u.role||'user')+'</span></div>';
-    }).join('');
-    document.getElementById('recent-users-list').innerHTML = html || '<div class="empty-state">No users yet</div>';
-
-    buildDashboardCharts(total, postsSnap.size, startupsSnap.size);
-    allUsers = usersSnap.docs.map(d => Object.assign({uid: d.id}, d.data()));
-  } catch(e) { showToast('Error loading dashboard: ' + e.message, 'error'); }
+      var d = u.joinedAt ? new Date(u.joinedAt.seconds*1000).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
+      return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--b)">'
+        +'<div class="uav">'+av+'</div>'
+        +'<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500">'+(u.name||'Builder')+'</div><div style="font-size:11px;color:var(--t3)">'+(u.email||'')+'</div></div>'
+        +'<span class="badge '+(u.role==='admin'?'badge-purple':'badge-gray')+'">'+(u.role||'user')+'</span>'
+        +'<span style="font-size:11px;color:var(--t3)">'+d+'</span></div>';
+    }).join('') : '<div class="empty"><p>No users yet.</p></div>';
+  }).catch(function(e){toast('Error loading dashboard: '+e.message,'err');});
 }
 
-function buildDashboardCharts(users, posts, startups) {
-  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul'];
-  var grad1 = function(ctx) {
-    var g = ctx.chart.ctx.createLinearGradient(0, 0, 0, 200);
-    g.addColorStop(0,'rgba(124,58,237,.5)'); g.addColorStop(1,'rgba(124,58,237,0)'); return g;
-  };
-  destroyChart('chart-growth');
-  chartInstances['chart-growth'] = new Chart(document.getElementById('chart-growth'), {
-    type:'line', data:{
-      labels: months,
-      datasets:[{label:'Users',data:[12,28,45,67,102,134,users],borderColor:'#a78bfa',backgroundColor:function(ctx){return grad1(ctx);},fill:true,tension:.4,pointRadius:3,pointBackgroundColor:'#a78bfa',borderWidth:2}]
-    },
-    options:chartOptions('#a78bfa')
+function buildDashCharts(total, posts, startups) {
+  var months = ['Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+  destroyChart('ch-growth');
+  charts['ch-growth'] = new Chart(document.getElementById('ch-growth'),{
+    type:'line',
+    data:{labels:months,datasets:[{label:'Users',data:[12,28,45,67,89,110,total],borderColor:'#a78bfa',backgroundColor:'rgba(124,58,237,.12)',fill:true,tension:.4,pointRadius:3,pointBackgroundColor:'#a78bfa',borderWidth:2}]},
+    options:chartOpts()
   });
-  destroyChart('chart-activity');
-  chartInstances['chart-activity'] = new Chart(document.getElementById('chart-activity'), {
-    type:'bar', data:{
-      labels: months,
-      datasets:[
-        {label:'Posts',data:[4,8,12,19,posts>0?Math.round(posts*.4):5,Math.round(posts*.7),posts],backgroundColor:'rgba(236,72,153,.6)',borderRadius:6},
-        {label:'Startups',data:[1,2,4,7,startups>0?Math.round(startups*.4):2,Math.round(startups*.7),startups],backgroundColor:'rgba(124,58,237,.6)',borderRadius:6}
-      ]
-    },
-    options:chartOptions()
+  destroyChart('ch-activity');
+  charts['ch-activity'] = new Chart(document.getElementById('ch-activity'),{
+    type:'bar',
+    data:{labels:months,datasets:[
+      {label:'Posts',data:[4,8,14,22,posts>5?Math.round(posts*.5):4,Math.round(posts*.8),posts],backgroundColor:'rgba(236,72,153,.6)',borderRadius:5},
+      {label:'Startups',data:[1,2,4,7,startups>3?Math.round(startups*.4):2,Math.round(startups*.7),startups],backgroundColor:'rgba(124,58,237,.6)',borderRadius:5}
+    ]},
+    options:chartOpts()
   });
 }
 
-// ============================================================
+// ═══════════════════════════════════════════════
 // USERS
-// ============================================================
-async function loadUsers() {
-  var tbody = document.getElementById('users-tbody');
-  tbody.innerHTML = '<tr><td colspan="7"><div class="skeleton" style="height:44px;margin:4px;border-radius:8px"></div></td></tr>'.repeat(4);
-  try {
-    var snap = await db.collection('users').orderBy('joinedAt','desc').limit(100).get();
-    allUsers = snap.docs.map(d => Object.assign({uid: d.id}, d.data()));
+// ═══════════════════════════════════════════════
+function loadUsers() {
+  if (!db) return;
+  document.getElementById('u-tbody').innerHTML = '<tr><td colspan="7"><div class="skeleton" style="height:40px;margin:4px;border-radius:8px"></div></td></tr>'.repeat(5);
+  db.collection('users').limit(200).get().then(function(snap) {
+    allUsers = snap.docs.map(function(d){return Object.assign({uid:d.id},d.data());});
+    document.getElementById('sb-ucnt').textContent = allUsers.length;
     renderUsers(allUsers);
-  } catch(e) {
-    try {
-      var snap = await db.collection('users').limit(100).get();
-      allUsers = snap.docs.map(d => Object.assign({uid: d.id}, d.data()));
-      renderUsers(allUsers);
-    } catch(e2) { showToast('Error loading users', 'error'); }
-  }
+  }).catch(function(e){toast('Error loading users: '+e.message,'err');});
 }
 
-function renderUsers(users) {
-  var tbody = document.getElementById('users-tbody');
-  if (!users.length) { tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><div style="margin-top:8px">No users found</div></div></td></tr>'; return; }
-  tbody.innerHTML = users.map(function(u) {
+function renderUsers(list) {
+  var tbody = document.getElementById('u-tbody');
+  if (!list.length) { tbody.innerHTML = '<tr><td colspan="7"><div class="empty"><p>No users found.</p></div></td></tr>'; return; }
+  tbody.innerHTML = list.map(function(u) {
     var av = u.photo ? '<img src="'+u.photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>' : (u.name||'U').charAt(0);
-    var joined = u.joinedAt ? new Date(u.joinedAt.seconds*1000).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}) : '-';
+    var d = u.joinedAt ? new Date(u.joinedAt.seconds*1000).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}) : '—';
     var banned = u.banned;
     return '<tr>'
-      + '<td><div style="display:flex;align-items:center;gap:10px"><div class="user-av">'+av+'</div><div><div style="font-size:13px;font-weight:500">'+(u.name||'Builder')+'</div><div style="font-size:11px;color:rgba(255,255,255,.35)">'+(u.email||'')+'</div></div></div></td>'
-      + '<td style="color:rgba(255,255,255,.45);font-size:12px">'+(u.handle?'@'+u.handle:'-')+'</td>'
-      + '<td><span class="badge '+(u.role==='admin'?'badge-admin':'badge-user')+'">'+(u.role||'user')+'</span></td>'
-      + '<td><span style="font-size:11px;color:rgba(255,255,255,.4)">'+(u.badge||'Member')+'</span></td>'
-      + '<td style="font-size:11px;color:rgba(255,255,255,.35)">'+joined+'</td>'
-      + '<td><span class="badge '+(banned?'badge-banned':'badge-active')+'">'+(banned?'Banned':'Active')+'</span></td>'
-      + '<td><div style="display:flex;gap:6px">'
-      + '<button onclick="viewUserModal(\''+u.uid+'\')" class="btn-ghost" style="padding:5px 10px;font-size:10px">View</button>'
-      + (banned
-          ? '<button onclick="unbanUser(\''+u.uid+'\')" class="btn-success" style="padding:5px 10px;font-size:10px">Unban</button>'
-          : '<button onclick="banUser(\''+u.uid+'\')" class="btn-danger" style="padding:5px 10px;font-size:10px">Ban</button>')
-      + '</div></td>'
-      + '</tr>';
+      +'<td><div style="display:flex;align-items:center;gap:9px"><div class="uav">'+av+'</div><div><div style="font-size:13px;font-weight:500">'+(u.name||'Builder')+'</div><div style="font-size:11px;color:var(--t3)">'+(u.email||'')+'</div></div></div></td>'
+      +'<td style="color:var(--t3);font-size:12px">'+(u.handle?'@'+u.handle:'—')+'</td>'
+      +'<td><span class="badge '+(u.role==='admin'?'badge-purple':'badge-gray')+'">'+(u.role||'user')+'</span></td>'
+      +'<td style="font-size:12px;color:var(--t2)">'+(u.badge||'Member')+'</td>'
+      +'<td style="font-size:11px;color:var(--t3)">'+d+'</td>'
+      +'<td><span class="badge '+(banned?'badge-red':'badge-green')+'">'+(banned?'Banned':'Active')+'</span></td>'
+      +'<td style="text-align:right"><div style="display:flex;gap:5px;justify-content:flex-end">'
+      +'<button class="btn-ghost" style="padding:5px 10px;font-size:11px" onclick="viewUser(\''+u.uid+'\')">View</button>'
+      +(banned
+        ?'<button class="btn-success" style="padding:5px 10px;font-size:11px" onclick="toggleBan(\''+u.uid+'\',false)">Unban</button>'
+        :'<button class="btn-danger" style="padding:5px 10px;font-size:11px" onclick="toggleBan(\''+u.uid+'\',true)">Ban</button>')
+      +'</div></td></tr>';
   }).join('');
 }
 
-function filterUsers(q) {
-  q = q.toLowerCase();
-  var filtered = allUsers.filter(u =>
-    (u.name||'').toLowerCase().includes(q) ||
-    (u.email||'').toLowerCase().includes(q) ||
-    (u.handle||'').toLowerCase().includes(q)
-  );
+function filterUsers() {
+  var q = document.getElementById('u-search').value.toLowerCase();
+  var role = document.getElementById('u-role-filter').value;
+  var filtered = allUsers.filter(function(u) {
+    var match = !q || (u.name||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q) || (u.handle||'').toLowerCase().includes(q);
+    var roleMatch = !role || (u.role||'user')===role;
+    return match && roleMatch;
+  });
   renderUsers(filtered);
 }
 
-async function banUser(uid) {
-  if (!confirm('Ban this user? They will lose access.')) return;
-  try {
-    await db.collection('users').doc(uid).update({banned: true});
-    showToast('User banned', 'success');
+function toggleBan(uid, ban) {
+  if (!db) return;
+  if (!confirm(ban ? 'Ban this user?' : 'Unban this user?')) return;
+  db.collection('users').doc(uid).update({banned:ban}).then(function(){
+    toast(ban ? 'User banned.' : 'User unbanned.', ban?'err':'ok');
     loadUsers();
-  } catch(e) { showToast('Error: ' + e.message, 'error'); }
-}
-async function unbanUser(uid) {
-  try {
-    await db.collection('users').doc(uid).update({banned: false});
-    showToast('User unbanned', 'success');
-    loadUsers();
-  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+  }).catch(function(e){toast('Error: '+e.message,'err');});
 }
 
-function viewUserModal(uid) {
-  var u = allUsers.find(x => x.uid === uid);
+function viewUser(uid) {
+  var u = allUsers.find(function(x){return x.uid===uid;});
   if (!u) return;
   var av = u.photo ? '<img src="'+u.photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>' : (u.name||'U').charAt(0);
   document.getElementById('modal-content').innerHTML = ''
-    + '<div style="text-align:center;margin-bottom:22px">'
-    + '<div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#ec4899);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;margin:0 auto 12px;overflow:hidden">'+av+'</div>'
-    + '<div style="font-size:18px;font-weight:700">'+(u.name||'Builder')+'</div>'
-    + '<div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:4px">'+(u.email||'')+'</div>'
-    + '<div style="margin-top:8px;display:flex;gap:6px;justify-content:center">'
-    + '<span class="badge '+(u.role==='admin'?'badge-admin':'badge-user')+'">'+(u.role||'user')+'</span>'
-    + '<span class="badge '+(u.banned?'badge-banned':'badge-active')+'">'+(u.banned?'Banned':'Active')+'</span>'
-    + '</div></div>'
-    + '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">'
-    + '<div><div style="font-size:10px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.06em">Handle</div><div style="font-size:13px;margin-top:4px">'+(u.handle||'-')+'</div></div>'
-    + '<div><div style="font-size:10px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.06em">Role/Badge</div><div style="font-size:13px;margin-top:4px">'+(u.badge||'Member')+'</div></div>'
-    + '<div><div style="font-size:10px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.06em">Connections</div><div style="font-size:13px;margin-top:4px">'+(u.connections||[]).length+'</div></div>'
-    + '<div><div style="font-size:10px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.06em">Connecting</div><div style="font-size:13px;margin-top:4px">'+(u.connecting||[]).length+'</div></div>'
-    + '<div style="grid-column:span 2"><div style="font-size:10px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.06em">Bio</div><div style="font-size:13px;margin-top:4px;color:rgba(255,255,255,.6)">'+(u.bio||'No bio')+'</div></div>'
-    + '<div style="grid-column:span 2"><div style="font-size:10px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.06em">UID</div><div style="font-size:10px;margin-top:4px;color:rgba(255,255,255,.3);word-break:break-all;font-family:monospace">'+uid+'</div></div>'
-    + '</div>'
-    + '<div style="display:flex;gap:8px;justify-content:flex-end">'
-    + (u.banned
-       ? '<button onclick="unbanUser(\''+uid+'\');closeModal()" class="btn-success">Unban User</button>'
-       : '<button onclick="banUser(\''+uid+'\');closeModal()" class="btn-danger">Ban User</button>')
-    + '</div>';
+    +'<div style="text-align:center;margin-bottom:20px">'
+    +'<div style="width:60px;height:60px;border-radius:50%;background:var(--g);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;margin:0 auto 12px;overflow:hidden">'+av+'</div>'
+    +'<div style="font-family:var(--fh);font-size:18px;font-weight:700">'+(u.name||'Builder')+'</div>'
+    +'<div style="font-size:12px;color:var(--t3);margin-top:3px">'+(u.email||'')+'</div>'
+    +'<div style="margin-top:8px;display:flex;gap:6px;justify-content:center">'
+    +'<span class="badge '+(u.role==='admin'?'badge-purple':'badge-gray')+'">'+(u.role||'user')+'</span>'
+    +'<span class="badge '+(u.banned?'badge-red':'badge-green')+'">'+(u.banned?'Banned':'Active')+'</span>'
+    +'</div></div>'
+    +'<div style="background:var(--card2);border:1px solid var(--b);border-radius:12px;padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">'
+    +'<div><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em">Handle</div><div style="font-size:13px;margin-top:3px">'+(u.handle||'—')+'</div></div>'
+    +'<div><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em">Badge</div><div style="font-size:13px;margin-top:3px">'+(u.badge||'Member')+'</div></div>'
+    +'<div><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em">Connections</div><div style="font-size:13px;margin-top:3px">'+(u.connections||[]).length+'</div></div>'
+    +'<div><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em">Bio</div><div style="font-size:12px;margin-top:3px;color:var(--t2)">'+(u.bio||'No bio')+'</div></div>'
+    +'<div style="grid-column:span 2"><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em">UID</div><div style="font-size:10px;margin-top:3px;color:var(--t3);font-family:monospace;word-break:break-all">'+uid+'</div></div>'
+    +'</div>'
+    +'<div style="display:flex;gap:8px">'
+    +(u.banned
+      ?'<button class="btn-success" style="flex:1;padding:9px" onclick="toggleBan(\''+uid+'\',false);closeModal()">Unban</button>'
+      :'<button class="btn-danger" style="flex:1;padding:9px" onclick="toggleBan(\''+uid+'\',true);closeModal()">Ban</button>')
+    +'</div>';
   openModal();
 }
 
-// ============================================================
-// FEED
-// ============================================================
-async function loadFeedPosts() {
-  var grid = document.getElementById('feed-posts-grid');
-  grid.innerHTML = '<div class="skeleton" style="height:100px;border-radius:12px"></div>'.repeat(3);
-  try {
-    var snap = await db.collection('feed').orderBy('createdAt','desc').limit(50).get();
-    if (snap.empty) { grid.innerHTML = '<div class="empty-state"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 4H4a2 2 0 0 0-2 2v14"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg><div style="margin-top:8px">No posts yet</div></div>'; return; }
-    grid.innerHTML = snap.docs.map(function(d) {
-      var p = d.data(), id = d.id;
+// ═══════════════════════════════════════════════
+// CONTENT
+// ═══════════════════════════════════════════════
+function loadContent() {
+  if (!db) return;
+  var list = document.getElementById('content-list');
+  list.innerHTML = '<div class="skeleton" style="height:90px;border-radius:14px"></div>'.repeat(4).split('</div>').join('</div>\n');
+  db.collection('feed').orderBy('createdAt','desc').limit(50).get().then(function(snap) {
+    if (snap.empty) { list.innerHTML = '<div class="empty"><p style="font-size:13px">No posts yet.</p></div>'; return; }
+    list.innerHTML = snap.docs.map(function(d) {
+      var p=d.data(), id=d.id;
       var t = p.createdAt ? new Date(p.createdAt.seconds*1000).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
-      return '<div class="adm-card" style="padding:16px">'
-        + '<div style="display:flex;align-items:flex-start;gap:12px">'
-        + '<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#ec4899);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0">'+(p.userName||'U').charAt(0)+'</div>'
-        + '<div style="flex:1;min-width:0">'
-        + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
-        + '<span style="font-size:13px;font-weight:600">'+(p.userName||'Builder')+'</span>'
-        + '<span style="font-size:10px;color:rgba(255,255,255,.3)">'+t+'</span>'
-        + '</div>'
-        + (p.title?'<div style="font-size:13px;font-weight:600;margin-top:6px;color:rgba(255,255,255,.9)">'+(p.title)+'</div>':'')
-        + '<div style="font-size:12px;color:rgba(255,255,255,.45);margin-top:4px;line-height:1.6;max-height:40px;overflow:hidden">'+(p.body||p.content||'')+'</div>'
-        + '</div>'
-        + '<button onclick="deleteFeedPost(\''+id+'\',this.parentElement.parentElement)" class="btn-danger" style="flex-shrink:0">Delete</button>'
-        + '</div></div>';
+      return '<div class="card" style="padding:16px" id="post-'+id+'">'
+        +'<div style="display:flex;align-items:flex-start;gap:12px">'
+        +'<div class="uav" style="flex-shrink:0">'+(p.userName||'U').charAt(0)+'</div>'
+        +'<div style="flex:1;min-width:0">'
+        +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">'
+        +'<span style="font-size:13px;font-weight:600">'+(p.userName||'Builder')+'</span>'
+        +'<span style="font-size:10px;color:var(--t3)">'+t+'</span>'
+        +'</div>'
+        +(p.title?'<div style="font-size:13px;font-weight:600;color:var(--t);margin-bottom:3px">'+esc(p.title)+'</div>':'')
+        +'<div style="font-size:12px;color:var(--t2);line-height:1.6;max-height:38px;overflow:hidden">'+esc((p.body||p.content||'').slice(0,200))+'</div>'
+        +'</div>'
+        +'<button class="btn-danger" style="flex-shrink:0;padding:6px 12px" onclick="deletePost(\''+id+'\')">Delete</button>'
+        +'</div></div>';
     }).join('');
-  } catch(e) { showToast('Error loading feed: ' + e.message, 'error'); }
+  }).catch(function(e){toast('Error: '+e.message,'err');});
 }
 
-async function deleteFeedPost(id, el) {
+function deletePost(id) {
   if (!confirm('Delete this post permanently?')) return;
-  try {
-    await db.collection('feed').doc(id).delete();
-    el.style.transition = 'all .3s';
-    el.style.opacity = '0';
-    el.style.transform = 'translateX(20px)';
-    setTimeout(function() { el.remove(); }, 300);
-    showToast('Post deleted', 'success');
-  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+  db.collection('feed').doc(id).delete().then(function() {
+    var el = document.getElementById('post-'+id);
+    if (el) { el.style.transition='all .3s'; el.style.opacity='0'; el.style.transform='translateX(30px)'; setTimeout(function(){el.remove();},300); }
+    toast('Post deleted.','ok');
+  }).catch(function(e){toast('Error: '+e.message,'err');});
 }
 
-// ============================================================
+// ═══════════════════════════════════════════════
 // STARTUPS
-// ============================================================
-async function loadStartups() {
-  var grid = document.getElementById('startups-grid');
+// ═══════════════════════════════════════════════
+function loadStartups() {
+  if (!db) return;
+  var grid = document.getElementById('startup-grid');
   grid.innerHTML = '<div class="skeleton" style="height:160px;border-radius:16px"></div>'.repeat(3);
-  try {
-    var snap = await db.collection('startups').orderBy('createdAt','desc').limit(50).get();
-    if (snap.empty) { grid.innerHTML = '<div class="empty-state" style="grid-column:span 3"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg><div style="margin-top:8px">No startups yet</div></div>'; return; }
+  db.collection('startups').limit(50).get().then(function(snap) {
+    if (snap.empty) { grid.innerHTML = '<div class="empty" style="grid-column:span 3"><p>No startups yet.</p></div>'; return; }
     grid.innerHTML = snap.docs.map(function(d) {
-      var s = d.data(), id = d.id;
-      var featured = s.featured;
-      return '<div class="adm-card" style="padding:18px;position:relative;overflow:hidden">'
-        + (featured?'<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#f59e0b,#ec4899)"></div>':'')
-        + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">'
-        + '<div style="width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,#7c3aed,#ec4899);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;overflow:hidden">'
-        + (s.logo?'<img src="'+s.logo+'" style="width:100%;height:100%;object-fit:cover;border-radius:11px">':(s.name||'S').charAt(0))
-        + '</div>'
-        + '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(s.name||'Startup')+'</div>'
-        + '<div style="font-size:11px;color:rgba(255,255,255,.4)">by '+(s.founderName||'Founder')+'</div></div>'
-        + (featured?'<span class="badge badge-featured">⭐ Featured</span>':'')
-        + '</div>'
-        + '<div style="font-size:12px;color:rgba(255,255,255,.45);line-height:1.5;margin-bottom:12px;max-height:36px;overflow:hidden">'+(s.description||'')+'</div>'
-        + '<div style="display:flex;gap:6px;flex-wrap:wrap">'
-        + (s.sector?'<span class="badge badge-active">'+s.sector+'</span>':'')
-        + (s.stage?'<span class="badge badge-user">'+s.stage+'</span>':'')
-        + '</div>'
-        + '<div style="display:flex;gap:6px;margin-top:12px;border-top:1px solid rgba(255,255,255,.06);padding-top:12px">'
-        + (featured
-          ? '<button onclick="unfeatureStartup(\''+id+'\')" class="btn-ghost" style="flex:1;padding:6px;font-size:10px">Unfeature</button>'
-          : '<button onclick="featureStartup(\''+id+'\')" class="btn-warn" style="flex:1;padding:6px;font-size:10px">⭐ Feature</button>')
-        + '<button onclick="deleteStartup(\''+id+'\')" class="btn-danger" style="flex:1;padding:6px;font-size:10px">Delete</button>'
-        + '</div></div>';
+      var s=d.data(), id=d.id;
+      var feat=s.featured, lic=s.logo;
+      return '<div class="card" style="padding:18px;position:relative;overflow:hidden" id="su-'+id+'">'
+        +(feat?'<div style="position:absolute;top:0;left:0;right:0;height:2px;background:var(--g)"></div>':'')
+        +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">'
+        +'<div style="width:40px;height:40px;border-radius:10px;background:var(--g);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;overflow:hidden;flex-shrink:0">'
+        +(lic?'<img src="'+lic+'" style="width:100%;height:100%;object-fit:cover">':(s.name||'S').charAt(0))
+        +'</div>'
+        +'<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(s.name||'Startup')+'</div>'
+        +'<div style="font-size:11px;color:var(--t3)">'+esc(s.founderName||'Founder')+'</div></div>'
+        +(feat?'<span class="badge badge-yellow">⭐ Featured</span>':'')
+        +'</div>'
+        +'<div style="font-size:12px;color:var(--t2);line-height:1.5;margin-bottom:10px;max-height:36px;overflow:hidden">'+esc((s.description||'').slice(0,120))+'</div>'
+        +'<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px">'
+        +(s.sector?'<span class="badge badge-green">'+esc(s.sector)+'</span>':'')
+        +(s.stage?'<span class="badge badge-gray">'+esc(s.stage)+'</span>':'')
+        +'</div>'
+        +'<div style="display:flex;gap:6px;padding-top:10px;border-top:1px solid var(--b)">'
+        +(feat
+          ?'<button class="btn-ghost" style="flex:1;padding:7px;font-size:11px" onclick="featureSU(\''+id+'\',false)">Unfeature</button>'
+          :'<button class="btn-warn" style="flex:1;padding:7px;font-size:11px" onclick="featureSU(\''+id+'\',true)">⭐ Feature</button>')
+        +'<button class="btn-danger" style="flex:1;padding:7px;font-size:11px" onclick="deleteSU(\''+id+'\')">Delete</button>'
+        +'</div></div>';
     }).join('');
-  } catch(e) { showToast('Error loading startups: ' + e.message, 'error'); }
+  }).catch(function(e){toast('Error: '+e.message,'err');});
 }
 
-async function featureStartup(id) {
-  try { await db.collection('startups').doc(id).update({featured:true}); showToast('Startup featured! ⭐', 'success'); loadStartups(); }
-  catch(e) { showToast('Error: ' + e.message, 'error'); }
+function featureSU(id, val) {
+  db.collection('startups').doc(id).update({featured:val}).then(function(){
+    toast(val?'Startup featured! ⭐':'Startup unfeatured.', val?'ok':'info');
+    loadStartups();
+  }).catch(function(e){toast('Error: '+e.message,'err');});
 }
-async function unfeatureStartup(id) {
-  try { await db.collection('startups').doc(id).update({featured:false}); showToast('Startup unfeatured', 'info'); loadStartups(); }
-  catch(e) { showToast('Error: ' + e.message, 'error'); }
-}
-async function deleteStartup(id) {
-  if (!confirm('Delete this startup listing?')) return;
-  try { await db.collection('startups').doc(id).delete(); showToast('Startup deleted', 'success'); loadStartups(); }
-  catch(e) { showToast('Error: ' + e.message, 'error'); }
+function deleteSU(id) {
+  if (!confirm('Delete this startup?')) return;
+  db.collection('startups').doc(id).delete().then(function(){toast('Deleted.','ok');loadStartups();}).catch(function(e){toast('Error: '+e.message,'err');});
 }
 
-// ============================================================
+// ═══════════════════════════════════════════════
 // ANALYTICS
-// ============================================================
-async function loadAnalytics() {
+// ═══════════════════════════════════════════════
+function loadAnalytics() {
   var months = ['Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
-  destroyChart('chart-dau');
-  chartInstances['chart-dau'] = new Chart(document.getElementById('chart-dau'), {
-    type:'line', data:{
-      labels: months,
-      datasets:[{label:'Active Users',data:[18,32,45,58,72,89,102,120],borderColor:'#a78bfa',backgroundColor:'rgba(124,58,237,.15)',fill:true,tension:.4,pointRadius:4,pointBackgroundColor:'#a78bfa',borderWidth:2.5}]
-    }, options:chartOptions('#a78bfa')
-  });
-  destroyChart('chart-content');
-  chartInstances['chart-content'] = new Chart(document.getElementById('chart-content'), {
-    type:'bar', data:{
-      labels: months,
-      datasets:[
-        {label:'Posts',data:[8,14,22,28,35,42,52,60],backgroundColor:'rgba(236,72,153,.65)',borderRadius:5},
-        {label:'Startups',data:[2,5,8,10,14,18,22,28],backgroundColor:'rgba(124,58,237,.65)',borderRadius:5}
-      ]
-    }, options:chartOptions()
-  });
-
-  // Roles donut
-  var adminCount = allUsers.filter(u => u.role === 'admin').length;
-  var userCount = allUsers.length - adminCount;
-  destroyChart('chart-roles');
-  chartInstances['chart-roles'] = new Chart(document.getElementById('chart-roles'), {
-    type:'doughnut', data:{
-      labels:['Users','Admins'],
-      datasets:[{data:[userCount||8,adminCount||1],backgroundColor:['rgba(124,58,237,.7)','rgba(236,72,153,.7)'],borderWidth:0,hoverOffset:6}]
-    },
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'rgba(255,255,255,.5)',font:{size:11},padding:16,usePointStyle:true}},tooltip:{backgroundColor:'rgba(13,13,20,.95)',borderColor:'rgba(124,58,237,.3)',borderWidth:1}}}
-  });
-
-  // Engagement
   var weeks = ['W1','W2','W3','W4','W5','W6','W7','W8'];
-  destroyChart('chart-engagement');
-  chartInstances['chart-engagement'] = new Chart(document.getElementById('chart-engagement'), {
-    type:'line', data:{
-      labels: weeks,
-      datasets:[
-        {label:'Likes',data:[22,38,54,48,67,82,74,92],borderColor:'#ec4899',backgroundColor:'transparent',tension:.4,pointRadius:3,borderWidth:2},
-        {label:'Comments',data:[8,14,22,18,28,34,30,40],borderColor:'#a78bfa',backgroundColor:'transparent',tension:.4,pointRadius:3,borderWidth:2}
-      ]
-    }, options:chartOptions()
+  destroyChart('ch-dau');
+  charts['ch-dau'] = new Chart(document.getElementById('ch-dau'),{
+    type:'line',data:{labels:months,datasets:[{label:'DAU',data:[18,32,45,58,72,89,102,120],borderColor:'#a78bfa',backgroundColor:'rgba(124,58,237,.15)',fill:true,tension:.4,pointRadius:3,pointBackgroundColor:'#a78bfa',borderWidth:2}]},
+    options:chartOpts()
+  });
+  destroyChart('ch-content');
+  charts['ch-content'] = new Chart(document.getElementById('ch-content'),{
+    type:'bar',data:{labels:months,datasets:[
+      {label:'Posts',data:[8,14,22,28,35,42,52,60],backgroundColor:'rgba(236,72,153,.65)',borderRadius:5},
+      {label:'Startups',data:[2,5,8,10,14,18,22,28],backgroundColor:'rgba(124,58,237,.65)',borderRadius:5}
+    ]},options:chartOpts()
+  });
+  var admins = allUsers.filter(function(u){return u.role==='admin';}).length;
+  var users = allUsers.length - admins;
+  destroyChart('ch-roles');
+  charts['ch-roles'] = new Chart(document.getElementById('ch-roles'),{
+    type:'doughnut',
+    data:{labels:['Users','Admins'],datasets:[{data:[users||8,admins||1],backgroundColor:['rgba(124,58,237,.7)','rgba(236,72,153,.7)'],borderWidth:0,hoverOffset:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'rgba(255,255,255,.5)',font:{size:11},padding:14,usePointStyle:true}},tooltip:{backgroundColor:'rgba(13,13,20,.95)',borderColor:'rgba(124,58,237,.3)',borderWidth:1}}}
+  });
+  destroyChart('ch-engage');
+  charts['ch-engage'] = new Chart(document.getElementById('ch-engage'),{
+    type:'line',data:{labels:weeks,datasets:[
+      {label:'Likes',data:[22,38,54,48,67,82,74,92],borderColor:'#ec4899',backgroundColor:'transparent',tension:.4,pointRadius:3,borderWidth:2},
+      {label:'Comments',data:[8,14,22,18,28,34,30,40],borderColor:'#a78bfa',backgroundColor:'transparent',tension:.4,pointRadius:3,borderWidth:2}
+    ]},options:chartOpts()
   });
 }
 
-// ============================================================
-// REPORTS
-// ============================================================
-async function loadReports() {
-  try {
-    var [usersSnap, postsSnap, startupsSnap] = await Promise.all([
-      db.collection('users').get(),
-      db.collection('feed').get(),
-      db.collection('startups').get()
-    ]);
-    var admins = usersSnap.docs.filter(d => d.data().role === 'admin').length;
-    var banned = usersSnap.docs.filter(d => d.data().banned).length;
-    var featured = startupsSnap.docs.filter(d => d.data().featured).length;
-
-    document.getElementById('report-users-detail').innerHTML = [
-      ['Total Users', usersSnap.size, '#a78bfa'],
-      ['Admin Accounts', admins, '#fbbf24'],
-      ['Banned Users', banned, '#f87171'],
-      ['Regular Members', usersSnap.size - admins - banned, '#34d399']
-    ].map(function(r) {
-      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05)">'
-        + '<span style="font-size:13px;color:rgba(255,255,255,.55)">'+r[0]+'</span>'
-        + '<span style="font-size:15px;font-weight:700;color:'+r[2]+'">'+r[1]+'</span></div>';
+// ═══════════════════════════════════════════════
+// AI USAGE
+// ═══════════════════════════════════════════════
+function loadAI() {
+  if (!db) return;
+  db.collection('users').limit(100).get().then(function(snap) {
+    var users = snap.docs.map(function(d){return Object.assign({uid:d.id},d.data());});
+    var withAI = users.filter(function(u){return u.aiRequests>0;});
+    var total = withAI.reduce(function(s,u){return s+(u.aiRequests||0);},0);
+    var avg = withAI.length ? Math.round(total/withAI.length) : 0;
+    document.getElementById('ai-total').textContent = total||0;
+    document.getElementById('ai-users').textContent = withAI.length||0;
+    document.getElementById('ai-avg').textContent = avg||0;
+    var tbody = document.getElementById('ai-tbody');
+    if (!withAI.length) { tbody.innerHTML = '<tr><td colspan="5"><div class="empty"><p style="font-size:13px;padding:16px">No AI usage data yet. Users need an "aiRequests" field in Firestore.</p></div></td></tr>'; return; }
+    tbody.innerHTML = withAI.sort(function(a,b){return (b.aiRequests||0)-(a.aiRequests||0);}).map(function(u) {
+      var av = (u.name||'U').charAt(0);
+      var limit = u.aiLimit || 100;
+      var pct = Math.min(100, Math.round(((u.aiRequests||0)/limit)*100));
+      var clr = pct>80?'#f87171':pct>50?'#fbbf24':'#34d399';
+      return '<tr>'
+        +'<td><div style="display:flex;align-items:center;gap:9px"><div class="uav">'+av+'</div><div style="font-size:13px;font-weight:500">'+(u.name||'Builder')+'</div></div></td>'
+        +'<td style="font-size:12px;color:var(--t3)">'+(u.email||'')+'</td>'
+        +'<td><div style="display:flex;align-items:center;gap:8px">'
+        +'<div style="flex:1;height:4px;background:rgba(255,255,255,.08);border-radius:4px"><div style="width:'+pct+'%;height:100%;background:'+clr+';border-radius:4px"></div></div>'
+        +'<span style="font-size:12px;font-weight:600;color:'+clr+';width:28px;text-align:right">'+(u.aiRequests||0)+'</span></div></td>'
+        +'<td><span class="badge '+(pct>80?'badge-red':pct>50?'badge-yellow':'badge-green')+'">'+(pct>80?'High':pct>50?'Medium':'Normal')+'</span></td>'
+        +'<td><button class="btn-ghost" style="padding:5px 10px;font-size:11px" onclick="resetAI(\''+u.uid+'\')">Reset</button></td>'
+        +'</tr>';
     }).join('');
-
-    document.getElementById('report-content-detail').innerHTML = [
-      ['Total Posts', postsSnap.size, '#f472b6'],
-      ['Total Startups', startupsSnap.size, '#34d399'],
-      ['Featured Startups', featured, '#fbbf24']
-    ].map(function(r) {
-      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05)">'
-        + '<span style="font-size:13px;color:rgba(255,255,255,.55)">'+r[0]+'</span>'
-        + '<span style="font-size:15px;font-weight:700;color:'+r[2]+'">'+r[1]+'</span></div>';
-    }).join('');
-  } catch(e) { showToast('Error loading reports', 'error'); }
+  }).catch(function(e){toast('Error: '+e.message,'err');});
 }
 
-// ============================================================
+function resetAI(uid) {
+  if (!confirm('Reset AI usage for this user?')) return;
+  db.collection('users').doc(uid).update({aiRequests:0}).then(function(){toast('AI usage reset.','ok');loadAI();}).catch(function(e){toast('Error: '+e.message,'err');});
+}
+
+// ═══════════════════════════════════════════════
+// NETWORK
+// ═══════════════════════════════════════════════
+function loadNetwork() {
+  if (!allUsers.length) {
+    db.collection('users').limit(100).get().then(function(snap){
+      allUsers = snap.docs.map(function(d){return Object.assign({uid:d.id},d.data());});
+      renderNetwork();
+    });
+  } else { renderNetwork(); }
+}
+function renderNetwork() {
+  var tbody = document.getElementById('net-tbody');
+  if (!allUsers.length) { tbody.innerHTML = '<tr><td colspan="6"><div class="empty"><p>No users.</p></div></td></tr>'; return; }
+  tbody.innerHTML = allUsers.map(function(u) {
+    var av = u.photo?'<img src="'+u.photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>':(u.name||'U').charAt(0);
+    var featured = u.featured;
+    return '<tr>'
+      +'<td><div style="display:flex;align-items:center;gap:9px"><div class="uav">'+av+'</div><div><div style="font-size:13px;font-weight:500">'+(u.name||'Builder')+'</div><div style="font-size:11px;color:var(--t3)">'+(u.email||'')+'</div></div></div></td>'
+      +'<td><span class="badge '+(u.role==='admin'?'badge-purple':'badge-gray')+'">'+(u.role||'user')+'</span></td>'
+      +'<td style="font-size:12px">'+(u.connections||[]).length+'</td>'
+      +'<td style="font-size:12px">'+(u.connecting||[]).length+'</td>'
+      +'<td><span class="badge '+(featured?'badge-yellow':'badge-gray')+'">'+(featured?'⭐ Featured':'Standard')+'</span></td>'
+      +'<td><div style="display:flex;gap:5px">'
+      +(featured
+        ?'<button class="btn-ghost" style="padding:5px 10px;font-size:11px" onclick="featureProfile(\''+u.uid+'\',false)">Unfeature</button>'
+        :'<button class="btn-warn" style="padding:5px 10px;font-size:11px" onclick="featureProfile(\''+u.uid+'\',true)">⭐ Feature</button>')
+      +'</div></td></tr>';
+  }).join('');
+}
+function featureProfile(uid, val) {
+  db.collection('users').doc(uid).update({featured:val}).then(function(){toast(val?'Profile featured!':'Unfeatured.',val?'ok':'info');loadNetwork();}).catch(function(e){toast('Error: '+e.message,'err');});
+}
+
+// ═══════════════════════════════════════════════
+// NOTIFICATIONS
+// ═══════════════════════════════════════════════
+function sendNotification() {
+  var title = document.getElementById('n-title').value.trim();
+  var body = document.getElementById('n-body').value.trim();
+  var type = document.getElementById('n-type').value;
+  if (!title||!body) { showAlert('notif-alert','Please fill in all fields.','err'); return; }
+  if (!db) return;
+  var al = document.getElementById('notif-alert');
+  db.collection('announcements').add({
+    title:title, body:body, type:type,
+    createdBy:CU?CU.email:'admin',
+    createdAt:firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function() {
+    showAlert('notif-alert','Announcement sent to all users!','ok');
+    document.getElementById('n-title').value='';
+    document.getElementById('n-body').value='';
+    loadAnnouncements();
+  }).catch(function(e){showAlert('notif-alert','Error: '+e.message,'err');});
+}
+
+function loadAnnouncements() {
+  if (!db) return;
+  db.collection('announcements').orderBy('createdAt','desc').limit(10).get().then(function(snap){
+    var el = document.getElementById('notif-list');
+    if (snap.empty) { el.innerHTML='<div class="empty"><p style="font-size:13px">No announcements yet.</p></div>'; return; }
+    el.innerHTML = snap.docs.map(function(d){
+      var a=d.data();
+      var t = a.createdAt ? new Date(a.createdAt.seconds*1000).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+      return '<div style="padding:12px 0;border-bottom:1px solid var(--b)">'
+        +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'
+        +'<span style="font-size:13px;font-weight:600">'+(a.title||'')+'</span>'
+        +'<span class="badge badge-gray">'+esc(a.type||'announcement')+'</span>'
+        +'<span style="font-size:10px;color:var(--t3);margin-left:auto">'+t+'</span>'
+        +'</div>'
+        +'<div style="font-size:12px;color:var(--t2)">'+esc(a.body||'')+'</div>'
+        +'</div>';
+    }).join('');
+  }).catch(function(){});
+}
+
+// ═══════════════════════════════════════════════
+// MONETIZATION
+// ═══════════════════════════════════════════════
+function loadMonetization() {
+  if (!allUsers.length) { document.getElementById('m-paid').textContent='0'; document.getElementById('m-free').textContent='0'; return; }
+  var paid = allUsers.filter(function(u){return u.plan==='paid'||u.isPaid;});
+  var free = allUsers.length - paid.length;
+  document.getElementById('m-paid').textContent = paid.length;
+  document.getElementById('m-free').textContent = free;
+  document.getElementById('m-rev').textContent = '₹'+(paid.length*499);
+  var tbody = document.getElementById('m-tbody');
+  if (!paid.length) { tbody.innerHTML='<tr><td colspan="4"><div class="empty"><p style="font-size:13px;padding:20px">No paid users yet. Add "plan:paid" or "isPaid:true" fields to user documents.</p></div></td></tr>'; return; }
+  tbody.innerHTML = paid.map(function(u){
+    return '<tr>'
+      +'<td><div style="display:flex;align-items:center;gap:9px"><div class="uav">'+(u.name||'U').charAt(0)+'</div><div style="font-size:13px;font-weight:500">'+(u.name||'Builder')+'</div></div></td>'
+      +'<td><span class="badge badge-yellow">Pro</span></td>'
+      +'<td style="font-size:12px;color:var(--t3)">—</td>'
+      +'<td><span class="badge badge-green">Active</span></td>'
+      +'</tr>';
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════
 // SETTINGS
-// ============================================================
-async function makeUserAdmin() {
-  var uid = document.getElementById('make-admin-uid').value.trim();
-  var msg = document.getElementById('make-admin-msg');
-  if (!uid) { msg.textContent = 'Please enter a UID.'; msg.style.color = '#f87171'; msg.style.display = 'block'; return; }
-  try {
-    await db.collection('users').doc(uid).update({role:'admin'});
-    msg.textContent = '✓ Role updated to admin successfully.';
-    msg.style.color = '#34d399'; msg.style.display = 'block';
-    showToast('User granted admin access', 'success');
-    document.getElementById('make-admin-uid').value = '';
-  } catch(e) {
-    msg.textContent = 'Error: ' + e.message;
-    msg.style.color = '#f87171'; msg.style.display = 'block';
-  }
+// ═══════════════════════════════════════════════
+function grantAdmin() {
+  var uid = document.getElementById('set-uid').value.trim();
+  var msg = document.getElementById('set-msg');
+  if (!uid) { showAlert('set-msg','Please enter a UID.','err'); return; }
+  if (!db) return;
+  db.collection('users').doc(uid).update({role:'admin'}).then(function(){
+    showAlert('set-msg','Admin role granted successfully.','ok');
+    document.getElementById('set-uid').value='';
+    toast('Admin granted!','ok');
+  }).catch(function(e){showAlert('set-msg','Error: '+e.message,'err');});
 }
 
-// ============================================================
+// ═══════════════════════════════════════════════
 // CHART HELPERS
-// ============================================================
-function chartOptions(color) {
+// ═══════════════════════════════════════════════
+function chartOpts() {
   return {
-    responsive:true, maintainAspectRatio:false,
+    responsive:true,maintainAspectRatio:false,
     interaction:{intersect:false,mode:'index'},
     plugins:{
-      legend:{labels:{color:'rgba(255,255,255,.5)',font:{size:11},usePointStyle:true,padding:12}},
-      tooltip:{backgroundColor:'rgba(13,13,20,.95)',borderColor:'rgba(124,58,237,.3)',borderWidth:1,titleColor:'#fff',bodyColor:'rgba(255,255,255,.7)',padding:10,cornerRadius:10}
+      legend:{labels:{color:'rgba(255,255,255,.5)',font:{size:11},usePointStyle:true,padding:10}},
+      tooltip:{backgroundColor:'rgba(8,8,16,.97)',borderColor:'rgba(124,58,237,.3)',borderWidth:1,titleColor:'#fff',bodyColor:'rgba(255,255,255,.7)',padding:10,cornerRadius:10}
     },
     scales:{
       x:{ticks:{color:'rgba(255,255,255,.3)',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'},border:{display:false}},
@@ -1183,32 +1316,42 @@ function chartOptions(color) {
     }
   };
 }
-function destroyChart(id) {
-  if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; }
-}
+function destroyChart(id) { if(charts[id]){charts[id].destroy();delete charts[id];} }
 
-// ============================================================
-// MODAL
-// ============================================================
-function openModal() { document.getElementById('modal-overlay').classList.add('open'); }
-function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+// ═══════════════════════════════════════════════
+// MODAL / TOAST / ALERT HELPERS
+// ═══════════════════════════════════════════════
+function openModal() { document.getElementById('modal-bg').classList.add('show'); }
+function closeModal() { document.getElementById('modal-bg').classList.remove('show'); }
 
-// ============================================================
-// TOAST
-// ============================================================
-function showToast(msg, type) {
-  type = type || 'info';
-  var icons = {success:'✓',error:'✕',info:'ℹ'};
+function toast(msg, type) {
+  type = type||'info';
+  var ic = {ok:'✓',err:'✕',info:'ℹ'};
   var t = document.createElement('div');
-  t.className = 'toast ' + type;
-  t.innerHTML = '<span style="font-size:14px">'+icons[type]+'</span><span>'+msg+'</span>';
-  document.getElementById('toast-container').appendChild(t);
-  setTimeout(function() {
-    t.style.transition = 'all .3s ease';
-    t.style.opacity = '0';
-    t.style.transform = 'translateX(20px)';
-    setTimeout(function() { t.remove(); }, 300);
-  }, 3000);
+  t.className = 'toast '+type;
+  t.innerHTML = '<span style="font-size:14px">'+ic[type]+'</span><span>'+esc(msg)+'</span>';
+  document.getElementById('toasts').appendChild(t);
+  setTimeout(function(){t.style.transition='all .3s';t.style.opacity='0';t.style.transform='translateX(20px)';setTimeout(function(){t.remove();},300);},3000);
 }
 
-// ============================
+function showAlert(id, msg, type) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'alert '+(type||'err');
+  el.style.display = 'block';
+}
+function hideAlert(id) { var el=document.getElementById(id); if(el)el.style.display='none'; }
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+  if (e.key==='Escape') closeModal();
+});
+</script>
+</body>
+</html>
